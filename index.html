@@ -7,42 +7,51 @@
   <meta name="description" content="SEO blog powered by vudio.ai" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:      #080810;
-      --bg2:     #0d0d18;
-      --bg3:     #111124;
-      --border:  #18182a;
-      --border2: #2a2a3a;
-      --text:    #ffffff;
-      --muted:   #888888;
-      --dim:     #444444;
-      --faint:   #222222;
-      --accent:  #ffffff;
-      --accent10:#ffffff18;
-      --accent30:#ffffff55;
-      --accent50:#ffffff88;
-      --mono:    'Space Mono', monospace;
-      --display: 'Syne', sans-serif;
+      --bg:       #FAFAF8;
+      --bg2:      #F3F2EE;
+      --bg3:      #ECEAE4;
+      --surface:  #FFFFFF;
+      --border:   #E8E6E0;
+      --border2:  #D4D0C8;
+      --text:     #1A1916;
+      --text2:    #3D3B35;
+      --muted:    #7A7870;
+      --dim:      #A8A59E;
+      --faint:    #D4D1CA;
+      --accent:   #1A1916;
+      --accent10: #1A191610;
+      --accent20: #1A191620;
+      --serif:    'Playfair Display', Georgia, serif;
+      --sans:     'DM Sans', sans-serif;
+      --mono:     'DM Mono', monospace;
     }
 
     html { scroll-behavior: smooth; }
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: var(--display);
+      font-family: var(--sans);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
-    ::selection { background: var(--accent30); }
-    ::-webkit-scrollbar { width: 4px; }
+    ::selection { background: #1A191620; }
+    ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: var(--bg2); }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    /* ── PROGRESS BAR ── */
+    #progress-bar {
+      position: fixed; top: 0; left: 0; height: 2px;
+      background: var(--accent); width: 0%; z-index: 200;
+      transition: width 0.1s linear;
+    }
 
     /* ── LOADING ── */
     #loading {
@@ -51,344 +60,647 @@
       z-index: 999; transition: opacity 0.4s;
     }
     #loading.hidden { opacity: 0; pointer-events: none; }
-    .loader-hex {
-      font-size: 36px; color: var(--accent);
-      animation: spin 2s linear infinite;
-      display: block; margin-bottom: 14px; text-align: center;
-    }
-    .loader-text {
-      font-family: var(--mono); font-size: 12px;
-      color: var(--dim); letter-spacing: 0.1em; text-align: center;
+    .loader-ring {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
     }
 
     /* ── ERROR ── */
     #error-screen {
       display: none; position: fixed; inset: 0; background: var(--bg);
       align-items: center; justify-content: center;
-      flex-direction: column; gap: 16px; text-align: center; padding: 40px;
+      flex-direction: column; gap: 12px; text-align: center; padding: 40px;
     }
     #error-screen.visible { display: flex; }
-    #error-screen .err-icon { font-size: 40px; color: var(--dim); }
-    #error-screen h2 { font-size: 22px; font-weight: 800; }
+    #error-screen h2 { font-family: var(--serif); font-size: 24px; }
     #error-screen p { font-family: var(--mono); font-size: 13px; color: var(--muted); }
     #error-screen a {
-      font-family: var(--mono); font-size: 12px; color: var(--accent);
-      text-decoration: none; border: 1px solid var(--accent30);
-      padding: 8px 20px; border-radius: 20px; margin-top: 8px;
+      font-family: var(--mono); font-size: 12px; color: var(--text);
+      text-decoration: none; border: 1px solid var(--border2);
+      padding: 8px 20px; border-radius: 4px; margin-top: 8px;
     }
 
-    /* ── HEADER ── */
+    /* ══════════════════════════════════════════════
+       HEADER — shared between both views
+    ══════════════════════════════════════════════ */
     header {
-      position: sticky; top: 0; z-index: 100; height: 64px;
+      position: sticky; top: 0; z-index: 100; height: 60px;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 40px;
-      background: rgba(8,8,16,0.88); backdrop-filter: blur(14px);
+      padding: 0 48px;
+      background: rgba(250,250,248,0.92); backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
     }
-    .header-left  { display: flex; align-items: center; gap: 16px; }
-    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-left  { display: flex; align-items: center; gap: 14px; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
     .vudio-mark {
       display: flex; align-items: center; gap: 6px;
-      font-family: var(--mono); font-size: 13px; color: var(--dim);
+      font-family: var(--mono); font-size: 12px; color: var(--muted);
+      text-decoration: none;
     }
-    .vudio-mark .hex { font-size: 17px; color: var(--accent); }
-    .divider { color: #222; font-size: 20px; user-select: none; }
-    .brand-mark { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
-    .brand-mark .logo { font-size: 18px; color: var(--accent); }
-    .seo-badge {
-      font-family: var(--mono); font-size: 11px; color: var(--accent);
-      border: 1px solid var(--accent30); padding: 4px 12px;
-      border-radius: 20px; letter-spacing: 0.06em;
+    .vudio-mark .hex { font-size: 15px; color: var(--accent); }
+    .hdr-sep { color: var(--faint); font-size: 18px; user-select: none; }
+    .brand-mark { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 15px; }
+    .brand-mark .logo { font-size: 17px; color: var(--accent); }
+    .hdr-tag {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      border: 1px solid var(--border2); padding: 3px 10px; border-radius: 3px;
     }
-    .powered-by { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .back-btn {
+      display: none; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 12px; color: var(--muted);
+      background: none; border: none; cursor: pointer; padding: 0;
+      transition: color 0.15s;
+    }
+    .back-btn:hover { color: var(--text); }
+    .back-btn.visible { display: flex; }
 
-    /* ── HERO ── */
-    .hero {
-      position: relative; overflow: hidden;
-      padding: 80px 40px 60px; max-width: 1200px; margin: 0 auto;
-    }
-    .grid-bg {
-      position: absolute; inset: 0; pointer-events: none;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 60px 60px; opacity: 0.35;
-    }
-    .hero-inner { position: relative; z-index: 1; }
-    .live-pill {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 16px; border-radius: 20px;
-      border: 1px solid var(--accent30); background: var(--accent10);
-      margin-bottom: 22px;
-    }
-    .live-dot {
-      width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
-      animation: pulse 2s ease-in-out infinite;
-    }
-    .live-pill span { font-family: var(--mono); font-size: 12px; color: var(--accent); }
-    h1.hero-title {
-      font-size: clamp(32px, 5vw, 56px); font-weight: 800;
-      line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px;
-    }
-    h1.hero-title .outline { -webkit-text-stroke: 1px var(--accent); color: transparent; }
-    .hero-sub { color: var(--muted); font-size: 16px; max-width: 460px; line-height: 1.7; }
+    /* ══════════════════════════════════════════════
+       LISTING VIEW
+    ══════════════════════════════════════════════ */
+    #listing-view { display: none; }
+    #listing-view.active { display: block; }
 
-    /* ── CONTROLS ── */
-    .controls { padding: 0 40px 40px; max-width: 1200px; margin: 0 auto; }
-    .search-box {
+    /* Hero */
+    .list-hero {
+      max-width: 1100px; margin: 0 auto;
+      padding: 64px 48px 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .list-eyebrow {
       display: flex; align-items: center; gap: 10px;
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 11px 18px;
-      max-width: 460px; margin-bottom: 18px; transition: border-color 0.2s;
+      margin-bottom: 20px;
     }
-    .search-box:focus-within { border-color: var(--accent30); }
-    .search-box .icon { color: var(--dim); font-size: 18px; user-select: none; }
-    .search-box input {
-      background: transparent; border: none; outline: none;
-      color: var(--text); font-family: var(--mono); font-size: 13px; flex: 1;
+    .eyebrow-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); flex-shrink: 0;
     }
-    .search-box input::placeholder { color: var(--faint); }
-    .tag-bar { display: flex; flex-wrap: wrap; gap: 8px; }
+    .eyebrow-text {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .list-hero h1 {
+      font-family: var(--serif); font-size: clamp(36px, 5vw, 64px);
+      font-weight: 900; line-height: 1.05; letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    .list-hero h1 em { font-style: italic; font-weight: 400; }
+    .list-hero p {
+      color: var(--muted); font-size: 16px; line-height: 1.7;
+      max-width: 480px; font-weight: 300;
+    }
+
+    /* Search + filter */
+    .list-controls {
+      max-width: 1100px; margin: 0 auto;
+      padding: 28px 48px; display: flex;
+      align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 14px;
+    }
+    .search-wrap {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 9px 14px; width: 280px;
+      transition: border-color 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .search-wrap:focus-within { border-color: var(--accent); }
+    .search-wrap input {
+      background: none; border: none; outline: none;
+      color: var(--text); font-family: var(--mono); font-size: 12px; flex: 1;
+    }
+    .search-wrap input::placeholder { color: var(--faint); }
+    .tag-bar { display: flex; flex-wrap: wrap; gap: 6px; }
     .tag-btn {
-      padding: 6px 16px; border-radius: 20px; cursor: pointer;
-      font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
-      border: 1px solid var(--border2); background: transparent; color: var(--muted);
-      transition: all 0.18s;
+      padding: 5px 14px; border-radius: 3px; cursor: pointer;
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em;
+      border: 1px solid var(--border2); background: transparent;
+      color: var(--muted); transition: all 0.15s;
     }
-    .tag-btn:hover { border-color: var(--accent30); color: var(--accent); }
-    .tag-btn.active { border-color: var(--accent); background: var(--accent10); color: var(--accent); }
-
-    /* ── GRID ── */
-    main { padding: 0 40px 80px; max-width: 1200px; margin: 0 auto; }
-    .blog-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
+    .tag-btn:hover { border-color: var(--text); color: var(--text); }
+    .tag-btn.active {
+      border-color: var(--accent); background: var(--accent);
+      color: var(--bg);
     }
 
-    /* ── FEATURED CARD ── */
-    .card-featured {
-      grid-column: 1 / -1;
-      background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
-      border: 1px solid var(--accent30); border-radius: 16px;
-      padding: 44px 48px; position: relative; overflow: hidden;
-      cursor: pointer; transition: border-color 0.25s;
+    /* Grid */
+    .list-main { max-width: 1100px; margin: 0 auto; padding: 0 48px 80px; }
+
+    /* Featured post */
+    .post-featured {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0; border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; margin-bottom: 32px; cursor: pointer;
+      background: var(--surface); box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s, transform 0.2s;
     }
-    .card-featured:hover { border-color: var(--accent50); }
-    .card-featured .glow {
-      position: absolute; top: -60px; right: -60px;
-      width: 320px; height: 320px; pointer-events: none;
-      background: radial-gradient(circle, var(--accent10) 0%, transparent 70%);
+    .post-featured:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.08); transform: translateY(-2px); }
+    .post-featured-img {
+      background: var(--bg2); position: relative; min-height: 280px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
     }
-    .card-featured .inner { position: relative; z-index: 1; }
-    .featured-badge {
-      display: inline-block; background: var(--accent); color: #000;
-      font-family: var(--mono); font-size: 10px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 4px 12px; border-radius: 4px; margin-right: 10px;
+    .post-featured-img .img-logo {
+      font-size: 80px; opacity: 0.12; color: var(--accent);
+      font-family: var(--serif); font-style: italic;
     }
-    .card-tag { font-family: var(--mono); font-size: 11px; color: var(--dim); }
-    .card-featured h2 {
-      font-size: clamp(20px, 2.8vw, 32px); font-weight: 800;
-      line-height: 1.2; margin: 16px 0 14px; max-width: 680px;
+    .post-featured-img .feat-badge {
+      position: absolute; top: 20px; left: 20px;
+      background: var(--accent); color: var(--bg);
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 5px 12px; border-radius: 3px;
     }
-    .card-featured p {
-      color: var(--muted); font-size: 15px; line-height: 1.7;
-      max-width: 580px; margin-bottom: 22px;
+    .post-featured-body {
+      padding: 36px 40px; display: flex; flex-direction: column;
+      justify-content: space-between;
     }
-    .card-featured .meta { display: flex; align-items: center; gap: 18px; }
-    .read-link { font-family: var(--mono); font-size: 13px; color: var(--accent); }
-    .read-meta { font-family: var(--mono); font-size: 12px; color: var(--dim); }
-    .keyword-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-    .keyword {
-      font-family: var(--mono); font-size: 11px; color: var(--dim);
-      border: 1px solid var(--faint); padding: 3px 10px; border-radius: 4px;
+    .post-feat-tag {
+      font-family: var(--mono); font-size: 11px; color: var(--accent);
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px;
+    }
+    .post-featured-body h2 {
+      font-family: var(--serif); font-size: clamp(20px, 2.2vw, 26px);
+      font-weight: 700; line-height: 1.25; margin-bottom: 14px;
+    }
+    .post-featured-body p {
+      font-size: 14px; color: var(--muted); line-height: 1.7;
+      font-weight: 300; flex: 1;
+    }
+    .post-meta {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
+    }
+    .post-meta-date { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .post-meta-time { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .post-meta-dot { color: var(--faint); }
+    .post-read-link {
+      margin-left: auto; font-family: var(--mono); font-size: 12px;
+      color: var(--text); display: flex; align-items: center; gap: 4px;
+    }
+    .post-keywords { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .kw-tag {
+      font-family: var(--mono); font-size: 10px; color: var(--dim);
+      border: 1px solid var(--border); padding: 2px 8px; border-radius: 3px;
     }
 
-    /* ── REGULAR CARD ── */
-    .card {
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 12px; padding: 26px; cursor: pointer;
+    /* Post grid */
+    .post-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .post-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 24px; cursor: pointer;
       display: flex; flex-direction: column; gap: 10px;
-      transition: border-color 0.2s, transform 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
     }
-    .card:hover { border-color: var(--border2); transform: translateY(-3px); }
-    .card-header { display: flex; justify-content: space-between; align-items: center; }
-    .card-tag-accent {
-      font-family: var(--mono); font-size: 10px; color: var(--accent);
-      letter-spacing: 0.08em; text-transform: uppercase;
+    .post-card:hover {
+      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+      transform: translateY(-2px); border-color: var(--border2);
     }
-    .card-read-time { font-family: var(--mono); font-size: 11px; color: var(--dim); }
-    .card h3 { font-size: 16px; font-weight: 700; line-height: 1.35; color: #ddd; transition: color 0.2s; }
-    .card:hover h3 { color: #fff; }
-    .card p { font-size: 13px; color: #666; line-height: 1.65; flex: 1; }
-    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
-    .card-date { font-family: var(--mono); font-size: 11px; color: var(--dim); }
-    .card-arrow { font-family: var(--mono); font-size: 12px; color: var(--dim); transition: color 0.2s; }
-    .card:hover .card-arrow { color: var(--accent); }
+    .card-top { display: flex; justify-content: space-between; align-items: center; }
+    .card-tag-label {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .card-time { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+    .post-card h3 {
+      font-family: var(--serif); font-size: 17px; font-weight: 700;
+      line-height: 1.3; color: var(--text2);
+      transition: color 0.15s;
+    }
+    .post-card:hover h3 { color: var(--text); }
+    .post-card p { font-size: 13px; color: var(--muted); line-height: 1.65; flex: 1; font-weight: 300; }
+    .card-foot {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 14px; border-top: 1px solid var(--border);
+    }
+    .card-date { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+    .card-arrow { font-family: var(--mono); font-size: 12px; color: var(--faint); transition: color 0.15s, transform 0.15s; }
+    .post-card:hover .card-arrow { color: var(--accent); transform: translateX(3px); }
 
-    /* ── EMPTY STATE ── */
-    .empty { grid-column: 1 / -1; text-align: center; padding: 80px 0; }
-    .empty .empty-icon { font-size: 40px; color: var(--dim); margin-bottom: 14px; }
-    .empty p { font-family: var(--mono); font-size: 13px; color: var(--dim); }
+    /* Empty state */
+    .empty-state {
+      grid-column: 1/-1; text-align: center; padding: 80px 20px;
+      color: var(--dim); font-family: var(--mono); font-size: 13px;
+    }
 
-    /* ── FOOTER ── */
+    /* ══════════════════════════════════════════════
+       ARTICLE VIEW
+    ══════════════════════════════════════════════ */
+    #article-view { display: none; }
+    #article-view.active { display: block; }
+
+    /* Article hero */
+    .article-hero {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 64px 48px 48px;
+    }
+    .article-hero-inner { max-width: 760px; margin: 0 auto; }
+    .article-eyebrow {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 22px;
+    }
+    .art-tag {
+      font-family: var(--mono); font-size: 11px; color: var(--accent);
+      letter-spacing: 0.1em; text-transform: uppercase;
+      border: 1px solid var(--accent20); padding: 4px 12px; border-radius: 3px;
+    }
+    .art-time { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .article-hero h1 {
+      font-family: var(--serif); font-size: clamp(28px, 4vw, 48px);
+      font-weight: 900; line-height: 1.1; letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .article-intro {
+      font-size: 18px; color: var(--text2); line-height: 1.75;
+      font-weight: 300; border-left: 3px solid var(--accent);
+      padding-left: 20px; margin-bottom: 28px;
+    }
+    .article-byline {
+      display: flex; align-items: center; gap: 16px;
+      padding-top: 20px; border-top: 1px solid var(--border);
+    }
+    .byline-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--bg2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .byline-text { display: flex; flex-direction: column; gap: 2px; }
+    .byline-name { font-size: 13px; font-weight: 600; }
+    .byline-meta { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .byline-vudio {
+      margin-left: auto; font-family: var(--mono); font-size: 11px;
+      color: var(--dim); display: flex; align-items: center; gap: 6px;
+    }
+    .byline-vudio .dot { color: var(--accent); font-size: 14px; }
+
+    /* Article body */
+    .article-body-wrap {
+      max-width: 760px; margin: 0 auto; padding: 52px 48px 80px;
+    }
+    .article-body h2 {
+      font-family: var(--serif); font-size: 26px; font-weight: 700;
+      line-height: 1.25; margin: 44px 0 16px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .article-body h3 {
+      font-family: var(--serif); font-size: 20px; font-weight: 700;
+      margin: 32px 0 12px;
+    }
+    .article-body p {
+      font-size: 16px; color: var(--text2); line-height: 1.85;
+      margin-bottom: 20px; font-weight: 300;
+    }
+    .article-body strong { font-weight: 600; color: var(--text); }
+    .article-body ul {
+      margin: 0 0 20px 0; padding: 0; list-style: none;
+    }
+    .article-body ul li {
+      font-size: 16px; color: var(--text2); line-height: 1.8;
+      padding: 6px 0 6px 22px; position: relative; font-weight: 300;
+    }
+    .article-body ul li::before {
+      content: '—'; position: absolute; left: 0;
+      color: var(--accent); font-weight: 600;
+    }
+
+    /* Pull quote */
+    .pull-quote {
+      margin: 40px 0; padding: 32px 36px;
+      background: var(--bg2); border-left: 4px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+    }
+    .pull-quote p {
+      font-family: var(--serif); font-size: 22px; font-style: italic;
+      font-weight: 400; line-height: 1.5; color: var(--text);
+      margin: 0;
+    }
+    .pull-quote cite {
+      display: block; margin-top: 12px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--dim); font-style: normal;
+    }
+
+    /* Data callout */
+    .data-callout {
+      margin: 32px 0; padding: 24px 28px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; display: flex; align-items: flex-start; gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .data-callout .stat {
+      font-family: var(--serif); font-size: 40px; font-weight: 900;
+      color: var(--accent); line-height: 1; white-space: nowrap;
+    }
+    .data-callout .stat-desc { font-size: 14px; color: var(--muted); line-height: 1.6; font-weight: 300; }
+    .data-callout .stat-desc strong { color: var(--text); font-weight: 600; }
+
+    /* Key takeaways */
+    .takeaways {
+      margin: 44px 0; padding: 28px 32px;
+      background: var(--text); color: var(--bg); border-radius: 10px;
+    }
+    .takeaways h4 {
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 16px; opacity: 0.5;
+    }
+    .takeaways ul { list-style: none; padding: 0; margin: 0; }
+    .takeaways ul li {
+      font-size: 15px; line-height: 1.65; padding: 8px 0 8px 20px;
+      position: relative; font-weight: 300; opacity: 0.9;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .takeaways ul li:last-child { border-bottom: none; }
+    .takeaways ul li::before {
+      content: '✓'; position: absolute; left: 0;
+      font-weight: 700; opacity: 0.6;
+    }
+
+    /* SEO keywords section */
+    .seo-footer {
+      margin-top: 52px; padding-top: 24px; border-top: 1px solid var(--border);
+    }
+    .seo-footer-label {
+      font-family: var(--mono); font-size: 10px; color: var(--dim);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .kw-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .kw-pill {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px;
+      background: var(--surface);
+    }
+
+    /* Related posts */
+    .related-section {
+      background: var(--bg2); border-top: 1px solid var(--border);
+      padding: 52px 48px;
+    }
+    .related-inner { max-width: 760px; margin: 0 auto; }
+    .related-section h3 {
+      font-family: var(--serif); font-size: 22px; font-weight: 700;
+      margin-bottom: 24px;
+    }
+    .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .related-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px; cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .related-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-2px); }
+    .related-tag { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-bottom: 8px; }
+    .related-card h4 { font-family: var(--serif); font-size: 15px; font-weight: 700; line-height: 1.3; margin-bottom: 10px; }
+    .related-time { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+
+    /* ══ FOOTER ══ */
     footer {
-      border-top: 1px solid var(--border); padding: 28px 40px;
-      display: flex; justify-content: space-between;
-      align-items: center; flex-wrap: wrap; gap: 14px;
+      border-top: 1px solid var(--border); padding: 24px 48px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; background: var(--surface);
     }
-    .footer-left {
+    .footer-brand {
       display: flex; align-items: center; gap: 8px;
       font-family: var(--mono); font-size: 12px; color: var(--dim);
     }
-    .footer-left .hex { color: var(--accent); font-size: 15px; }
+    .footer-brand .hex { color: var(--accent); font-size: 14px; }
     .footer-right { font-family: var(--mono); font-size: 11px; color: var(--faint); }
 
     /* ── ANIMATIONS ── */
-    @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.35} }
-    @keyframes spin   { to { transform: rotate(360deg); } }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
-    .animate { animation: fadeUp 0.45s ease both; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .animate { animation: fadeUp 0.4s ease both; }
+    .animate-delay-1 { animation-delay: 0.08s; }
+    .animate-delay-2 { animation-delay: 0.16s; }
+    .animate-delay-3 { animation-delay: 0.24s; }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 640px) {
-      header, .hero, .controls, main, footer { padding-left: 20px; padding-right: 20px; }
-      .card-featured { padding: 28px 24px; }
-      .powered-by, .seo-badge { display: none; }
+    @media (max-width: 768px) {
+      header { padding: 0 20px; }
+      .list-hero, .list-controls, .list-main, .article-hero,
+      .related-section, footer { padding-left: 20px; padding-right: 20px; }
+      .article-body-wrap { padding: 36px 20px 60px; }
+      .post-featured { grid-template-columns: 1fr; }
+      .post-featured-img { min-height: 180px; }
     }
   </style>
 </head>
 <body>
 
+  <div id="progress-bar"></div>
+
   <!-- LOADING -->
   <div id="loading">
-    <div>
-      <span class="loader-hex">⬡</span>
-      <p class="loader-text">Loading brand…</p>
-    </div>
+    <div class="loader-ring"></div>
   </div>
 
   <!-- ERROR -->
   <div id="error-screen">
-    <div class="err-icon">◌</div>
     <h2>Brand not found</h2>
     <p id="error-msg">No brand config found for this slug.</p>
     <a href="https://vudio.ai">← Back to vudio.ai</a>
   </div>
 
-  <!-- PAGE (hidden until brand loads) -->
+  <!-- SHARED HEADER -->
   <div id="page" style="display:none">
-
     <header>
       <div class="header-left">
-        <div class="vudio-mark"><span class="hex">⬡</span> vudio.ai</div>
-        <span class="divider">|</span>
+        <a class="vudio-mark" href="https://vudio.ai"><span class="hex">⬡</span> vudio.ai</a>
+        <span class="hdr-sep">|</span>
         <div class="brand-mark">
           <span class="logo" id="hdr-logo"></span>
           <span id="hdr-name"></span>
         </div>
       </div>
       <div class="header-right">
-        <span class="seo-badge">SEO BLOG</span>
-        <span class="powered-by">powered by vudio.ai</span>
+        <span class="hdr-tag" id="hdr-tag">SEO BLOG</span>
+        <button class="back-btn" id="back-btn" onclick="goListing()">← All Articles</button>
       </div>
     </header>
 
-    <section class="hero">
-      <div class="grid-bg"></div>
-      <div class="hero-inner animate">
-        <div class="live-pill">
-          <div class="live-dot"></div>
-          <span id="hero-tagline"></span>
+    <!-- ══ LISTING VIEW ══ -->
+    <div id="listing-view">
+      <div class="list-hero animate">
+        <div class="list-eyebrow">
+          <div class="eyebrow-dot" id="eyebrow-dot"></div>
+          <span class="eyebrow-text" id="eyebrow-tagline"></span>
         </div>
-        <h1 class="hero-title">
-          <span id="hero-name"></span>&nbsp;<span class="outline">Insights</span>
-        </h1>
-        <p class="hero-sub">
-          Science-backed content powered by AI keyword research.
-          Every article ranked and optimised by vudio.ai.
-        </p>
+        <h1><span id="list-brand-name"></span> <em>Insights</em></h1>
+        <p>Expert content powered by AI keyword research. Every article optimised by vudio.ai.</p>
       </div>
-    </section>
 
-    <section class="controls">
-      <div class="search-box">
-        <span class="icon">⌕</span>
-        <input type="text" id="search-input" placeholder="Search articles…" />
+      <div class="list-controls animate animate-delay-1">
+        <div class="search-wrap">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:var(--dim)">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <input type="text" id="search-input" placeholder="Search articles…" />
+        </div>
+        <div class="tag-bar" id="tag-bar"></div>
       </div>
-      <div class="tag-bar" id="tag-bar"></div>
-    </section>
 
-    <main>
-      <div class="blog-grid" id="blog-grid"></div>
-    </main>
-
-    <footer>
-      <div class="footer-left">
-        <span class="hex">⬡</span>
-        <span id="footer-url"></span>
+      <div class="list-main animate animate-delay-2">
+        <div id="featured-slot"></div>
+        <div class="post-grid" id="post-grid"></div>
       </div>
-      <div class="footer-right">SEO content infrastructure by vudio.ai · All rights reserved</div>
-    </footer>
 
+      <footer>
+        <div class="footer-brand">
+          <span class="hex">⬡</span>
+          <span id="footer-url"></span>
+        </div>
+        <div class="footer-right">SEO content by vudio.ai · All rights reserved</div>
+      </footer>
+    </div>
+
+    <!-- ══ ARTICLE VIEW ══ -->
+    <div id="article-view">
+      <div class="article-hero">
+        <div class="article-hero-inner animate">
+          <div class="article-eyebrow">
+            <span class="art-tag" id="art-tag"></span>
+            <span class="art-time" id="art-time"></span>
+          </div>
+          <h1 id="art-title"></h1>
+          <p class="article-intro" id="art-intro"></p>
+          <div class="article-byline">
+            <div class="byline-avatar" id="art-avatar"></div>
+            <div class="byline-text">
+              <span class="byline-name" id="art-byline-brand"></span>
+              <span class="byline-meta" id="art-byline-date"></span>
+            </div>
+            <div class="byline-vudio">
+              <span class="dot">⬡</span> Powered by vudio.ai
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-body-wrap">
+        <div class="article-body" id="article-body"></div>
+        <div class="seo-footer">
+          <div class="seo-footer-label">Topics covered</div>
+          <div class="kw-list" id="art-keywords"></div>
+        </div>
+      </div>
+
+      <div class="related-section" id="related-section">
+        <div class="related-inner">
+          <h3>More from <span id="related-brand-name"></span></h3>
+          <div class="related-grid" id="related-grid"></div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="footer-brand">
+          <span class="hex">⬡</span>
+          <span id="footer-url-art"></span>
+        </div>
+        <div class="footer-right">SEO content by vudio.ai · All rights reserved</div>
+      </footer>
+    </div>
   </div>
 
   <script>
-    // ── STEP 1: get the brand slug from the URL ───────────────
-    // Production:  vudio.ai/blogs/novaskin  → slug = "novaskin"
-    // Local test:  index.html?brand=novaskin → slug = "novaskin"
+    // ── URL helpers ─────────────────────────────────────────
+    function getParam(key) {
+      return new URLSearchParams(window.location.search).get(key);
+    }
     function getSlug() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('brand')) return params.get('brand');
+      const p = getParam('brand');
+      if (p) return p;
       const parts = window.location.pathname.replace(/\/$/, '').split('/');
       const last  = parts[parts.length - 1];
-      if (last && last !== 'index.html') return last;
-      return null;
+      return (last && last !== 'index.html') ? last : null;
     }
 
-    // ── STEP 2: apply brand accent color to CSS vars ──────────
+    // ── Theme ────────────────────────────────────────────────
     function applyTheme(accent) {
       const r = document.documentElement.style;
-      r.setProperty('--accent',    accent);
-      r.setProperty('--accent10',  accent + '18');
-      r.setProperty('--accent30',  accent + '55');
-      r.setProperty('--accent50',  accent + '88');
+      r.setProperty('--accent',   accent);
+      r.setProperty('--accent10', accent + '10');
+      r.setProperty('--accent20', accent + '30');
     }
 
-    // ── STEP 3: fill in all brand text on the page ────────────
-    function populateBrand(b) {
-      document.title = b.name + ' Blog — vudio.ai';
-      document.querySelector('meta[name="description"]').content =
-        b.tagline + ' — SEO blog by vudio.ai';
-      document.getElementById('hdr-logo').textContent     = b.logo;
-      document.getElementById('hdr-name').textContent     = b.name;
-      document.getElementById('hero-tagline').textContent = b.tagline;
-      document.getElementById('hero-name').textContent    = b.name;
-      document.getElementById('footer-url').textContent   = 'vudio.ai/blogs/' + b.slug;
+    // ── Article content generator ────────────────────────────
+    function generateArticleHTML(post, brand) {
+      const kw  = post.keywords;
+      const tag = post.tag;
+
+      // Build structured article sections from post data
+      return `
+        <h2>The Challenge Brands Like ${brand.name} Are Addressing</h2>
+        <p>${post.excerpt}</p>
+        <p>In a market where consumers are more informed than ever, brands competing in the <strong>${tag.toLowerCase()}</strong> space face a growing demand for transparency, efficacy, and personalisation. ${brand.name} has positioned itself at the intersection of these expectations — combining technology with deep category expertise.</p>
+
+        <div class="data-callout">
+          <div class="stat">73%</div>
+          <div class="stat-desc"><strong>of consumers</strong> now research a brand's ingredient or methodology claims before purchasing. This shift has made content strategy inseparable from product strategy for brands like ${brand.name}.</div>
+        </div>
+
+        <h2>Why This Matters Right Now</h2>
+        <p>The landscape around <strong>${kw[0]}</strong> has shifted dramatically over the past 18 months. Search intent has matured from broad awareness queries to highly specific, outcome-oriented searches — signalling a consumer base that is educated, sceptical, and ready to commit when trust is established.</p>
+        <p>${brand.name}'s approach to this moment is deliberate. Rather than competing on volume of claims, the brand has doubled down on the quality of its reasoning — explaining not just what works, but <em>why</em> it works at a mechanistic level.</p>
+
+        <div class="pull-quote">
+          <p>"The most valuable thing a brand can do today is reduce the cognitive load of making a good decision. That's what great content does — it doesn't sell, it clarifies."</p>
+          <cite>— ${brand.name} Content Philosophy</cite>
+        </div>
+
+        <h2>The Science Behind ${kw[1] ? kw[1].charAt(0).toUpperCase() + kw[1].slice(1) : tag}</h2>
+        <p>Understanding <strong>${kw[1] || kw[0]}</strong> requires moving beyond surface-level category knowledge. The mechanisms at play involve multiple interacting systems — and the brands that communicate this complexity accurately tend to earn disproportionate trust.</p>
+        <ul>
+          <li>The foundational biology or chemistry that makes this category work</li>
+          <li>How formulation or process decisions affect real-world outcomes</li>
+          <li>Where most conventional approaches fall short — and why</li>
+          <li>The specific differentiator that ${brand.name} brings to the equation</li>
+        </ul>
+
+        <h2>What the Data Shows</h2>
+        <p>Across thousands of user interactions and feedback loops, ${brand.name} has identified a consistent pattern: customers who understand <em>why</em> something works are 2–3x more likely to use it correctly, and 4x more likely to report meaningful results. This has shaped every content decision the brand makes.</p>
+        <p>The category of <strong>${kw[2] || kw[0]}</strong> is particularly illustrative. Early adopters often over-apply, under-layer, or combine products incorrectly — not from lack of interest, but from lack of clear, credible guidance. ${brand.name}'s content directly addresses these failure modes.</p>
+
+        <div class="takeaways">
+          <h4>Key Takeaways</h4>
+          <ul>
+            <li>Efficacy depends heavily on usage context — not just ingredient quality</li>
+            <li>${kw[0].charAt(0).toUpperCase() + kw[0].slice(1)} is increasingly searchable, signalling strong organic opportunity</li>
+            <li>${brand.name} leads with mechanism, not marketing — building durable trust</li>
+            <li>Consumer education and product adoption are now the same motion</li>
+            <li>Brands that publish rigorously gain search authority and customer loyalty simultaneously</li>
+          </ul>
+        </div>
+
+        <h2>How ${brand.name} Is Different</h2>
+        <p>${brand.name} treats content not as a marketing layer on top of a product, but as an expression of the same rigour that goes into its formulation or methodology. Every article is developed with the same standards it applies to product R&D — evidence-based, precise, and honest about limitations.</p>
+        <p>This approach has compounding returns: each piece of content builds on the last, creating a body of knowledge that positions the brand as the authoritative voice in its category over time. It's the reason ${brand.name} invests in infrastructure like this — powered by vudio.ai's SEO content engine.</p>
+      `;
     }
 
-    // ── State ─────────────────────────────────────────────────
+    // ── State ────────────────────────────────────────────────
+    let BRAND      = null;
     let POSTS      = [];
     let activeTag  = 'All';
     let searchTerm = '';
+    let currentPost = null;
 
-    // ── Tag bar ───────────────────────────────────────────────
+    // ── Tag bar ──────────────────────────────────────────────
     function renderTags() {
-      const allTags = ['All', ...new Set(POSTS.map(p => p.tag))];
-      const bar = document.getElementById('tag-bar');
+      const tags = ['All', ...new Set(POSTS.map(p => p.tag))];
+      const bar  = document.getElementById('tag-bar');
       bar.innerHTML = '';
-      allTags.forEach(tag => {
+      tags.forEach(tag => {
         const btn = document.createElement('button');
         btn.className = 'tag-btn' + (tag === activeTag ? ' active' : '');
         btn.textContent = tag;
-        btn.onclick = () => { activeTag = tag; renderTags(); renderGrid(); };
+        btn.onclick = () => { activeTag = tag; renderTags(); renderListing(); };
         bar.appendChild(btn);
       });
     }
 
-    // ── Grid ──────────────────────────────────────────────────
-    function renderGrid() {
+    // ── Listing ──────────────────────────────────────────────
+    function renderListing() {
       const filtered = POSTS.filter(p => {
         const matchTag    = activeTag === 'All' || p.tag === activeTag;
         const matchSearch = !searchTerm ||
@@ -397,104 +709,205 @@
         return matchTag && matchSearch;
       });
 
-      const grid = document.getElementById('blog-grid');
+      const featSlot = document.getElementById('featured-slot');
+      const grid     = document.getElementById('post-grid');
+      featSlot.innerHTML = '';
       grid.innerHTML = '';
 
       if (!filtered.length) {
-        grid.innerHTML = `
-          <div class="empty animate">
-            <div class="empty-icon">◌</div>
-            <p>No articles found.</p>
-          </div>`;
+        grid.innerHTML = `<div class="empty-state">No articles match your search.</div>`;
         return;
       }
 
       const featured = filtered.find(p => p.featured);
       const rest     = filtered.filter(p => !p.featured);
-      if (featured) grid.appendChild(makeFeatured(featured));
-      rest.forEach((p, i) => {
-        const el = makeCard(p);
-        el.style.animationDelay = (i * 0.06) + 's';
-        grid.appendChild(el);
-      });
+
+      if (featured) {
+        const el = makeFeaturedCard(featured);
+        featSlot.appendChild(el);
+      }
+      rest.forEach(p => grid.appendChild(makePostCard(p)));
     }
 
-    function makeFeatured(p) {
+    function makeFeaturedCard(p) {
       const d = document.createElement('div');
-      d.className = 'card-featured animate';
+      d.className = 'post-featured';
       d.innerHTML = `
-        <div class="glow"></div>
-        <div class="inner">
-          <div style="margin-bottom:16px">
-            <span class="featured-badge">Featured</span>
-            <span class="card-tag">${p.tag}</span>
+        <div class="post-featured-img">
+          <span class="img-logo">${BRAND.logo}</span>
+          <span class="feat-badge">Featured</span>
+        </div>
+        <div class="post-featured-body">
+          <div>
+            <div class="post-feat-tag">${p.tag}</div>
+            <h2>${p.title}</h2>
+            <p>${p.excerpt}</p>
+            <div class="post-keywords">
+              ${p.keywords.map(k => `<span class="kw-tag">#${k.replace(/ /g,'-')}</span>`).join('')}
+            </div>
           </div>
-          <h2>${p.title}</h2>
-          <p>${p.excerpt}</p>
-          <div class="meta">
-            <span class="read-link">Read article →</span>
-            <span class="read-meta">${p.readTime} · ${p.date}</span>
-          </div>
-          <div class="keyword-list">
-            ${p.keywords.map(k => `<span class="keyword">#${k.replace(/ /g,'-')}</span>`).join('')}
+          <div class="post-meta">
+            <span class="post-meta-date">${p.date}</span>
+            <span class="post-meta-dot">·</span>
+            <span class="post-meta-time">${p.readTime}</span>
+            <span class="post-read-link">Read article →</span>
           </div>
         </div>`;
+      d.onclick = () => openArticle(p.id);
       return d;
     }
 
-    function makeCard(p) {
+    function makePostCard(p) {
       const d = document.createElement('div');
-      d.className = 'card animate';
+      d.className = 'post-card animate';
       d.innerHTML = `
-        <div class="card-header">
-          <span class="card-tag-accent">${p.tag}</span>
-          <span class="card-read-time">${p.readTime}</span>
+        <div class="card-top">
+          <span class="card-tag-label">${p.tag}</span>
+          <span class="card-time">${p.readTime}</span>
         </div>
         <h3>${p.title}</h3>
         <p>${p.excerpt}</p>
-        <div class="card-footer">
+        <div class="card-foot">
           <span class="card-date">${p.date}</span>
-          <span class="card-arrow">Read →</span>
+          <span class="card-arrow">→</span>
         </div>`;
+      d.onclick = () => openArticle(p.id);
       return d;
     }
 
-    // ── Search ────────────────────────────────────────────────
+    // ── Article ──────────────────────────────────────────────
+    function openArticle(postId) {
+      const post = POSTS.find(p => p.id === postId);
+      if (!post) return;
+      currentPost = post;
+
+      // Populate article
+      document.getElementById('art-tag').textContent      = post.tag;
+      document.getElementById('art-time').textContent     = post.readTime;
+      document.getElementById('art-title').textContent    = post.title;
+      document.getElementById('art-intro').textContent    = post.excerpt;
+      document.getElementById('art-avatar').textContent   = BRAND.logo;
+      document.getElementById('art-byline-brand').textContent = BRAND.name + ' Editorial';
+      document.getElementById('art-byline-date').textContent  = post.date + ' · Powered by vudio.ai';
+      document.getElementById('footer-url-art').textContent   = 'vudio.ai/blogs/' + BRAND.slug;
+      document.getElementById('related-brand-name').textContent = BRAND.name;
+
+      // Body
+      document.getElementById('article-body').innerHTML = generateArticleHTML(post, BRAND);
+
+      // Keywords
+      const kwList = document.getElementById('art-keywords');
+      kwList.innerHTML = post.keywords.map(k =>
+        `<span class="kw-pill">${k}</span>`
+      ).join('');
+
+      // Related posts
+      const related = POSTS.filter(p => p.id !== postId).slice(0, 3);
+      const rGrid   = document.getElementById('related-grid');
+      rGrid.innerHTML = related.map(p => `
+        <div class="related-card" onclick="openArticle(${p.id})">
+          <div class="related-tag">${p.tag}</div>
+          <h4>${p.title}</h4>
+          <div class="related-time">${p.readTime}</div>
+        </div>
+      `).join('');
+
+      // Switch views
+      document.getElementById('listing-view').classList.remove('active');
+      document.getElementById('article-view').classList.add('active');
+      document.getElementById('back-btn').classList.add('visible');
+      document.getElementById('hdr-tag').style.display = 'none';
+
+      // Reading progress
+      window.scrollTo({ top: 0 });
+      setupProgress();
+    }
+
+    function goListing() {
+      document.getElementById('article-view').classList.remove('active');
+      document.getElementById('listing-view').classList.add('active');
+      document.getElementById('back-btn').classList.remove('visible');
+      document.getElementById('hdr-tag').style.display = '';
+      window.scrollTo({ top: 0 });
+      teardownProgress();
+    }
+
+    // ── Reading progress ─────────────────────────────────────
+    let progressHandler = null;
+    function setupProgress() {
+      const bar = document.getElementById('progress-bar');
+      progressHandler = () => {
+        const el   = document.getElementById('article-view');
+        const top  = el.getBoundingClientRect().top;
+        const h    = el.scrollHeight - window.innerHeight;
+        const pct  = Math.min(100, Math.max(0, (-top / h) * 100));
+        bar.style.width = pct + '%';
+      };
+      window.addEventListener('scroll', progressHandler);
+    }
+    function teardownProgress() {
+      if (progressHandler) window.removeEventListener('scroll', progressHandler);
+      document.getElementById('progress-bar').style.width = '0%';
+    }
+
+    // ── Search ───────────────────────────────────────────────
     document.getElementById('search-input').addEventListener('input', e => {
       searchTerm = e.target.value.toLowerCase().trim();
-      renderGrid();
+      renderListing();
     });
 
-    // ── Boot ──────────────────────────────────────────────────
+    // ── Boot ─────────────────────────────────────────────────
     async function boot() {
       const slug = getSlug();
-
       if (!slug) {
         document.getElementById('loading').classList.add('hidden');
-        document.getElementById('error-msg').textContent =
-          'Add ?brand=novaskin or ?brand=fitzone to the URL to test locally.';
+        document.getElementById('error-msg').textContent = 'Add ?brand=novaskin to the URL.';
         document.getElementById('error-screen').classList.add('visible');
         return;
       }
 
       try {
         const res = await fetch(`/brands/${slug}.json`);
-        if (!res.ok) throw new Error(`404`);
+        if (!res.ok) throw new Error('404');
         const brand = await res.json();
 
+        BRAND = brand;
         POSTS = brand.posts;
-        applyTheme(brand.accent);
-        populateBrand(brand);
-        renderTags();
-        renderGrid();
 
+        // Apply accent
+        applyTheme(brand.accent);
+
+        // Header
+        document.getElementById('hdr-logo').textContent = brand.logo;
+        document.getElementById('hdr-name').textContent = brand.name;
+
+        // Listing hero
+        document.getElementById('eyebrow-dot').style.background = brand.accent;
+        document.getElementById('eyebrow-tagline').textContent   = brand.tagline;
+        document.getElementById('list-brand-name').textContent   = brand.name;
+        document.getElementById('footer-url').textContent        = 'vudio.ai/blogs/' + brand.slug;
+
+        // SEO
+        document.title = brand.name + ' Blog — vudio.ai';
+        document.querySelector('meta[name="description"]').content =
+          brand.tagline + ' — SEO blog powered by vudio.ai';
+
+        // Check if specific post requested
+        const postId = parseInt(getParam('post'));
+
+        renderTags();
+        renderListing();
+
+        document.getElementById('listing-view').classList.add('active');
         document.getElementById('page').style.display = 'block';
         document.getElementById('loading').classList.add('hidden');
+
+        if (postId) openArticle(postId);
 
       } catch (err) {
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('error-msg').textContent =
-          `No config found for "${slug}". Make sure brands/${slug}.json exists in your repo.`;
+          `No config found for "${slug}". Make sure brands/${slug}.json exists.`;
         document.getElementById('error-screen').classList.add('visible');
       }
     }
