@@ -1,0 +1,69 @@
+{
+  "slug": "novaskin",
+  "name": "NovaSkin",
+  "tagline": "AI-Powered Skincare",
+  "accent": "#00FFB2",
+  "logo": "◈",
+  "posts": [
+    {
+      "id": 1,
+      "tag": "Skincare Science",
+      "title": "Why Your Morning Routine Is Silently Aging Your Skin — And How AI Can Fix It",
+      "excerpt": "Dermatologists reveal the 4 ingredients most people combine incorrectly at 7am. NovaSkin's AI skin engine analyzed 2.3M routines to find the pattern.",
+      "readTime": "6 min read",
+      "date": "May 12, 2026",
+      "featured": true,
+      "keywords": ["morning skincare routine", "anti-aging", "AI skincare"]
+    },
+    {
+      "id": 2,
+      "tag": "Ingredients Deep-Dive",
+      "title": "Niacinamide vs Retinol: The 2026 Guide to Layering Without Irritation",
+      "excerpt": "The ingredient war is over. Here's the data-backed protocol for using both without redness, peeling, or the dreaded purge cycle.",
+      "readTime": "8 min read",
+      "date": "May 9, 2026",
+      "featured": false,
+      "keywords": ["niacinamide", "retinol", "skincare layering"]
+    },
+    {
+      "id": 3,
+      "tag": "Trend Report",
+      "title": "Barrier Repair Is the Biggest Skincare Trend of 2026 — Here's Why Your Skin Needs It",
+      "excerpt": "Searches for 'skin barrier repair' are up 340% YoY. We break down what it means, who needs it, and which NovaSkin formulas target it directly.",
+      "readTime": "5 min read",
+      "date": "May 6, 2026",
+      "featured": false,
+      "keywords": ["skin barrier", "barrier repair 2026", "ceramides"]
+    },
+    {
+      "id": 4,
+      "tag": "Personalization",
+      "title": "How NovaSkin's AI Builds a Routine For Your Exact Skin Microbiome",
+      "excerpt": "Your skin has 1,000 bacterial species living on it. Most skincare ignores this. Here's how our AI doesn't — and why it changes everything.",
+      "readTime": "7 min read",
+      "date": "May 2, 2026",
+      "featured": false,
+      "keywords": ["personalized skincare", "skin microbiome", "AI skincare routine"]
+    },
+    {
+      "id": 5,
+      "tag": "Sun Care",
+      "title": "SPF 50 Isn't Enough If You're Applying It Wrong — The Science",
+      "excerpt": "Studies show 73% of people under-apply sunscreen by half. We did the math on what SPF you're actually getting, and how NovaSkin's app fixes this.",
+      "readTime": "4 min read",
+      "date": "Apr 28, 2026",
+      "featured": false,
+      "keywords": ["SPF application", "sunscreen guide", "sun protection"]
+    },
+    {
+      "id": 6,
+      "tag": "Case Study",
+      "title": "90 Days, Real Results: How 500 Beta Users Transformed Their Skin With NovaSkin",
+      "excerpt": "We followed 500 users for 3 months. The results surprised even our dermatology team. Full data, photos, and methodology inside.",
+      "readTime": "10 min read",
+      "date": "Apr 22, 2026",
+      "featured": false,
+      "keywords": ["skincare results", "NovaSkin review", "skincare before after"]
+    }
+  ]
+}

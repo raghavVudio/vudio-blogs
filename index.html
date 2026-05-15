@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog — vudio.ai</title>
+  <meta name="description" content="SEO blog powered by vudio.ai" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #080810;
+      --bg2:     #0d0d18;
+      --bg3:     #111124;
+      --border:  #18182a;
+      --border2: #2a2a3a;
+      --text:    #ffffff;
+      --muted:   #888888;
+      --dim:     #444444;
+      --faint:   #222222;
+      --accent:  #ffffff;
+      --accent10:#ffffff18;
+      --accent30:#ffffff55;
+      --accent50:#ffffff88;
+      --mono:    'Space Mono', monospace;
+      --display: 'Syne', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--display);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection { background: var(--accent30); }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    /* ── LOADING ── */
+    #loading {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999; transition: opacity 0.4s;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    .loader-hex {
+      font-size: 36px; color: var(--accent);
+      animation: spin 2s linear infinite;
+      display: block; margin-bottom: 14px; text-align: center;
+    }
+    .loader-text {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--dim); letter-spacing: 0.1em; text-align: center;
+    }
+
+    /* ── ERROR ── */
+    #error-screen {
+      display: none; position: fixed; inset: 0; background: var(--bg);
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px; text-align: center; padding: 40px;
+    }
+    #error-screen.visible { display: flex; }
+    #error-screen .err-icon { font-size: 40px; color: var(--dim); }
+    #error-screen h2 { font-size: 22px; font-weight: 800; }
+    #error-screen p { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+    #error-screen a {
+      font-family: var(--mono); font-size: 12px; color: var(--accent);
+      text-decoration: none; border: 1px solid var(--accent30);
+      padding: 8px 20px; border-radius: 20px; margin-top: 8px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 100; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px;
+      background: rgba(8,8,16,0.88); backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-left  { display: flex; align-items: center; gap: 16px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .vudio-mark {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 13px; color: var(--dim);
+    }
+    .vudio-mark .hex { font-size: 17px; color: var(--accent); }
+    .divider { color: #222; font-size: 20px; user-select: none; }
+    .brand-mark { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
+    .brand-mark .logo { font-size: 18px; color: var(--accent); }
+    .seo-badge {
+      font-family: var(--mono); font-size: 11px; color: var(--accent);
+      border: 1px solid var(--accent30); padding: 4px 12px;
+      border-radius: 20px; letter-spacing: 0.06em;
+    }
+    .powered-by { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; overflow: hidden;
+      padding: 80px 40px 60px; max-width: 1200px; margin: 0 auto;
+    }
+    .grid-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px; opacity: 0.35;
+    }
+    .hero-inner { position: relative; z-index: 1; }
+    .live-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 20px;
+      border: 1px solid var(--accent30); background: var(--accent10);
+      margin-bottom: 22px;
+    }
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .live-pill span { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+    h1.hero-title {
+      font-size: clamp(32px, 5vw, 56px); font-weight: 800;
+      line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px;
+    }
+    h1.hero-title .outline { -webkit-text-stroke: 1px var(--accent); color: transparent; }
+    .hero-sub { color: var(--muted); font-size: 16px; max-width: 460px; line-height: 1.7; }
+
+    /* ── CONTROLS ── */
+    .controls { padding: 0 40px 40px; max-width: 1200px; margin: 0 auto; }
+    .search-box {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 18px;
+      max-width: 460px; margin-bottom: 18px; transition: border-color 0.2s;
+    }
+    .search-box:focus-within { border-color: var(--accent30); }
+    .search-box .icon { color: var(--dim); font-size: 18px; user-select: none; }
+    .search-box input {
+      background: transparent; border: none; outline: none;
+      color: var(--text); font-family: var(--mono); font-size: 13px; flex: 1;
+    }
+    .search-box input::placeholder { color: var(--faint); }
+    .tag-bar { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-btn {
+      padding: 6px 16px; border-radius: 20px; cursor: pointer;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+      border: 1px solid var(--border2); background: transparent; color: var(--muted);
+      transition: all 0.18s;
+    }
+    .tag-btn:hover { border-color: var(--accent30); color: var(--accent); }
+    .tag-btn.active { border-color: var(--accent); background: var(--accent10); color: var(--accent); }
+
+    /* ── GRID ── */
+    main { padding: 0 40px 80px; max-width: 1200px; margin: 0 auto; }
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── FEATURED CARD ── */
+    .card-featured {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+      border: 1px solid var(--accent30); border-radius: 16px;
+      padding: 44px 48px; position: relative; overflow: hidden;
+      cursor: pointer; transition: border-color 0.25s;
+    }
+    .card-featured:hover { border-color: var(--accent50); }
+    .card-featured .glow {
+      position: absolute; top: -60px; right: -60px;
+      width: 320px; height: 320px; pointer-events: none;
+      background: radial-gradient(circle, var(--accent10) 0%, transparent 70%);
+    }
+    .card-featured .inner { position: relative; z-index: 1; }
+    .featured-badge {
+      display: inline-block; background: var(--accent); color: #000;
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 4px; margin-right: 10px;
+    }
+    .card-tag { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .card-featured h2 {
+      font-size: clamp(20px, 2.8vw, 32px); font-weight: 800;
+      line-height: 1.2; margin: 16px 0 14px; max-width: 680px;
+    }
+    .card-featured p {
+      color: var(--muted); font-size: 15px; line-height: 1.7;
+      max-width: 580px; margin-bottom: 22px;
+    }
+    .card-featured .meta { display: flex; align-items: center; gap: 18px; }
+    .read-link { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+    .read-meta { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+    .keyword-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .keyword {
+      font-family: var(--mono); font-size: 11px; color: var(--dim);
+      border: 1px solid var(--faint); padding: 3px 10px; border-radius: 4px;
+    }
+
+    /* ── REGULAR CARD ── */
+    .card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 26px; cursor: pointer;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card:hover { border-color: var(--border2); transform: translateY(-3px); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; }
+    .card-tag-accent {
+      font-family: var(--mono); font-size: 10px; color: var(--accent);
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .card-read-time { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .card h3 { font-size: 16px; font-weight: 700; line-height: 1.35; color: #ddd; transition: color 0.2s; }
+    .card:hover h3 { color: #fff; }
+    .card p { font-size: 13px; color: #666; line-height: 1.65; flex: 1; }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+    .card-date { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .card-arrow { font-family: var(--mono); font-size: 12px; color: var(--dim); transition: color 0.2s; }
+    .card:hover .card-arrow { color: var(--accent); }
+
+    /* ── EMPTY STATE ── */
+    .empty { grid-column: 1 / -1; text-align: center; padding: 80px 0; }
+    .empty .empty-icon { font-size: 40px; color: var(--dim); margin-bottom: 14px; }
+    .empty p { font-family: var(--mono); font-size: 13px; color: var(--dim); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 28px 40px;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 14px;
+    }
+    .footer-left {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 12px; color: var(--dim);
+    }
+    .footer-left .hex { color: var(--accent); font-size: 15px; }
+    .footer-right { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.35} }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+    .animate { animation: fadeUp 0.45s ease both; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      header, .hero, .controls, main, footer { padding-left: 20px; padding-right: 20px; }
+      .card-featured { padding: 28px 24px; }
+      .powered-by, .seo-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING -->
+  <div id="loading">
+    <div>
+      <span class="loader-hex">⬡</span>
+      <p class="loader-text">Loading brand…</p>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="error-screen">
+    <div class="err-icon">◌</div>
+    <h2>Brand not found</h2>
+    <p id="error-msg">No brand config found for this slug.</p>
+    <a href="https://vudio.ai">← Back to vudio.ai</a>
+  </div>
+
+  <!-- PAGE (hidden until brand loads) -->
+  <div id="page" style="display:none">
+
+    <header>
+      <div class="header-left">
+        <div class="vudio-mark"><span class="hex">⬡</span> vudio.ai</div>
+        <span class="divider">|</span>
+        <div class="brand-mark">
+          <span class="logo" id="hdr-logo"></span>
+          <span id="hdr-name"></span>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="seo-badge">SEO BLOG</span>
+        <span class="powered-by">powered by vudio.ai</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="grid-bg"></div>
+      <div class="hero-inner animate">
+        <div class="live-pill">
+          <div class="live-dot"></div>
+          <span id="hero-tagline"></span>
+        </div>
+        <h1 class="hero-title">
+          <span id="hero-name"></span>&nbsp;<span class="outline">Insights</span>
+        </h1>
+        <p class="hero-sub">
+          Science-backed content powered by AI keyword research.
+          Every article ranked and optimised by vudio.ai.
+        </p>
+      </div>
+    </section>
+
+    <section class="controls">
+      <div class="search-box">
+        <span class="icon">⌕</span>
+        <input type="text" id="search-input" placeholder="Search articles…" />
+      </div>
+      <div class="tag-bar" id="tag-bar"></div>
+    </section>
+
+    <main>
+      <div class="blog-grid" id="blog-grid"></div>
+    </main>
+
+    <footer>
+      <div class="footer-left">
+        <span class="hex">⬡</span>
+        <span id="footer-url"></span>
+      </div>
+      <div class="footer-right">SEO content infrastructure by vudio.ai · All rights reserved</div>
+    </footer>
+
+  </div>
+
+  <script>
+    // ── STEP 1: get the brand slug from the URL ───────────────
+    // Production:  vudio.ai/blogs/novaskin  → slug = "novaskin"
+    // Local test:  index.html?brand=novaskin → slug = "novaskin"
+    function getSlug() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('brand')) return params.get('brand');
+      const parts = window.location.pathname.replace(/\/$/, '').split('/');
+      const last  = parts[parts.length - 1];
+      if (last && last !== 'index.html') return last;
+      return null;
+    }
+
+    // ── STEP 2: apply brand accent color to CSS vars ──────────
+    function applyTheme(accent) {
+      const r = document.documentElement.style;
+      r.setProperty('--accent',    accent);
+      r.setProperty('--accent10',  accent + '18');
+      r.setProperty('--accent30',  accent + '55');
+      r.setProperty('--accent50',  accent + '88');
+    }
+
+    // ── STEP 3: fill in all brand text on the page ────────────
+    function populateBrand(b) {
+      document.title = b.name + ' Blog — vudio.ai';
+      document.querySelector('meta[name="description"]').content =
+        b.tagline + ' — SEO blog by vudio.ai';
+      document.getElementById('hdr-logo').textContent     = b.logo;
+      document.getElementById('hdr-name').textContent     = b.name;
+      document.getElementById('hero-tagline').textContent = b.tagline;
+      document.getElementById('hero-name').textContent    = b.name;
+      document.getElementById('footer-url').textContent   = 'vudio.ai/blogs/' + b.slug;
+    }
+
+    // ── State ─────────────────────────────────────────────────
+    let POSTS      = [];
+    let activeTag  = 'All';
+    let searchTerm = '';
+
+    // ── Tag bar ───────────────────────────────────────────────
+    function renderTags() {
+      const allTags = ['All', ...new Set(POSTS.map(p => p.tag))];
+      const bar = document.getElementById('tag-bar');
+      bar.innerHTML = '';
+      allTags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.className = 'tag-btn' + (tag === activeTag ? ' active' : '');
+        btn.textContent = tag;
+        btn.onclick = () => { activeTag = tag; renderTags(); renderGrid(); };
+        bar.appendChild(btn);
+      });
+    }
+
+    // ── Grid ──────────────────────────────────────────────────
+    function renderGrid() {
+      const filtered = POSTS.filter(p => {
+        const matchTag    = activeTag === 'All' || p.tag === activeTag;
+        const matchSearch = !searchTerm ||
+          p.title.toLowerCase().includes(searchTerm) ||
+          p.excerpt.toLowerCase().includes(searchTerm);
+        return matchTag && matchSearch;
+      });
+
+      const grid = document.getElementById('blog-grid');
+      grid.innerHTML = '';
+
+      if (!filtered.length) {
+        grid.innerHTML = `
+          <div class="empty animate">
+            <div class="empty-icon">◌</div>
+            <p>No articles found.</p>
+          </div>`;
+        return;
+      }
+
+      const featured = filtered.find(p => p.featured);
+      const rest     = filtered.filter(p => !p.featured);
+      if (featured) grid.appendChild(makeFeatured(featured));
+      rest.forEach((p, i) => {
+        const el = makeCard(p);
+        el.style.animationDelay = (i * 0.06) + 's';
+        grid.appendChild(el);
+      });
+    }
+
+    function makeFeatured(p) {
+      const d = document.createElement('div');
+      d.className = 'card-featured animate';
+      d.innerHTML = `
+        <div class="glow"></div>
+        <div class="inner">
+          <div style="margin-bottom:16px">
+            <span class="featured-badge">Featured</span>
+            <span class="card-tag">${p.tag}</span>
+          </div>
+          <h2>${p.title}</h2>
+          <p>${p.excerpt}</p>
+          <div class="meta">
+            <span class="read-link">Read article →</span>
+            <span class="read-meta">${p.readTime} · ${p.date}</span>
+          </div>
+          <div class="keyword-list">
+            ${p.keywords.map(k => `<span class="keyword">#${k.replace(/ /g,'-')}</span>`).join('')}
+          </div>
+        </div>`;
+      return d;
+    }
+
+    function makeCard(p) {
+      const d = document.createElement('div');
+      d.className = 'card animate';
+      d.innerHTML = `
+        <div class="card-header">
+          <span class="card-tag-accent">${p.tag}</span>
+          <span class="card-read-time">${p.readTime}</span>
+        </div>
+        <h3>${p.title}</h3>
+        <p>${p.excerpt}</p>
+        <div class="card-footer">
+          <span class="card-date">${p.date}</span>
+          <span class="card-arrow">Read →</span>
+        </div>`;
+      return d;
+    }
+
+    // ── Search ────────────────────────────────────────────────
+    document.getElementById('search-input').addEventListener('input', e => {
+      searchTerm = e.target.value.toLowerCase().trim();
+      renderGrid();
+    });
+
+    // ── Boot ──────────────────────────────────────────────────
+    async function boot() {
+      const slug = getSlug();
+
+      if (!slug) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error-msg').textContent =
+          'Add ?brand=novaskin or ?brand=fitzone to the URL to test locally.';
+        document.getElementById('error-screen').classList.add('visible');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/brands/${slug}.json`);
+        if (!res.ok) throw new Error(`404`);
+        const brand = await res.json();
+
+        POSTS = brand.posts;
+        applyTheme(brand.accent);
+        populateBrand(brand);
+        renderTags();
+        renderGrid();
+
+        document.getElementById('page').style.display = 'block';
+        document.getElementById('loading').classList.add('hidden');
+
+      } catch (err) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error-msg').textContent =
+          `No config found for "${slug}". Make sure brands/${slug}.json exists in your repo.`;
+        document.getElementById('error-screen').classList.add('visible');
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>
