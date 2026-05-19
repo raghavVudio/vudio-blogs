@@ -3,916 +3,889 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blog — vudio.ai</title>
-  <meta name="description" content="SEO blog powered by vudio.ai" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-
+  <title>Blog</title>
+  <meta name="description" content="" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #FAFAF8;
-      --bg2:      #F3F2EE;
-      --bg3:      #ECEAE4;
-      --surface:  #FFFFFF;
-      --border:   #E8E6E0;
-      --border2:  #D4D0C8;
-      --text:     #1A1916;
-      --text2:    #3D3B35;
-      --muted:    #7A7870;
-      --dim:      #A8A59E;
-      --faint:    #D4D1CA;
-      --accent:   #1A1916;
-      --accent10: #1A191610;
-      --accent20: #1A191620;
-      --serif:    'Playfair Display', Georgia, serif;
-      --sans:     'DM Sans', sans-serif;
-      --mono:     'DM Mono', monospace;
+      --accent:     #000000;
+      --accent-10:  #00000012;
+      --accent-30:  #00000030;
+      --bg:         #F9F9F7;
+      --bg2:        #F2F1ED;
+      --surface:    #FFFFFF;
+      --border:     #E6E3DC;
+      --border2:    #CEC9BE;
+      --text:       #1C1A17;
+      --text2:      #3A3830;
+      --muted:      #7A776E;
+      --dim:        #252524;
+      --faint:      #D5D2C8;  
+      --font-head:  Georgia, serif;
+      --font-body:  system-ui, sans-serif;
+      --font-mono:  'Courier New', monospace;
+      --r:          10px;
+      --shad:       0 1px 6px rgba(0,0,0,0.05);
+      --shad-h:     0 6px 24px rgba(0,0,0,0.10);
     }
 
     html { scroll-behavior: smooth; }
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-body); min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
-
-    ::selection { background: #1A191620; }
+    ::selection { background: var(--accent-10); }
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: var(--bg2); }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
-    /* ── PROGRESS BAR ── */
-    #progress-bar {
-      position: fixed; top: 0; left: 0; height: 2px;
-      background: var(--accent); width: 0%; z-index: 200;
+    /* ── PROGRESS ── */
+    #prog {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: var(--accent); z-index: 300; pointer-events: none;
       transition: width 0.1s linear;
     }
 
     /* ── LOADING ── */
     #loading {
       position: fixed; inset: 0; background: var(--bg);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 999; transition: opacity 0.4s;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 14px; z-index: 999;
+      transition: opacity 0.3s;
     }
-    #loading.hidden { opacity: 0; pointer-events: none; }
-    .loader-ring {
-      width: 32px; height: 32px; border-radius: 50%;
-      border: 2px solid var(--border); border-top-color: var(--accent);
-      animation: spin 0.8s linear infinite;
+    #loading.out { opacity: 0; pointer-events: none; }
+    .ring {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2px solid var(--border2); border-top-color: var(--accent);
+      animation: spin .7s linear infinite;
     }
+    #load-msg { font-size: 12px; color: var(--dim); font-family: var(--font-mono); }
 
     /* ── ERROR ── */
-    #error-screen {
+    #err {
       display: none; position: fixed; inset: 0; background: var(--bg);
-      align-items: center; justify-content: center;
-      flex-direction: column; gap: 12px; text-align: center; padding: 40px;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; padding: 40px; text-align: center;
     }
-    #error-screen.visible { display: flex; }
-    #error-screen h2 { font-family: var(--serif); font-size: 24px; }
-    #error-screen p { font-family: var(--mono); font-size: 13px; color: var(--muted); }
-    #error-screen a {
-      font-family: var(--mono); font-size: 12px; color: var(--text);
-      text-decoration: none; border: 1px solid var(--border2);
-      padding: 8px 20px; border-radius: 4px; margin-top: 8px;
+    #err.show { display: flex; }
+    #err h2 { font-size: 22px; }
+    #err p  { font-size: 13px; color: var(--muted); max-width: 400px; line-height: 1.6; }
+    #err a  {
+      font-size: 12px; font-family: var(--font-mono); color: var(--text);
+      border: 1px solid var(--border2); padding: 8px 18px;
+      border-radius: 5px; text-decoration: none; margin-top: 4px;
     }
 
-    /* ══════════════════════════════════════════════
-       HEADER — shared between both views
-    ══════════════════════════════════════════════ */
-    header {
-      position: sticky; top: 0; z-index: 100; height: 60px;
+    /* ══ HEADER ══ */
+    #hdr {
+      position: sticky; top: 0; z-index: 200; height: 60px;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 48px;
-      background: rgba(250,250,248,0.92); backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
+      padding: 0 48px; border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 93%, transparent); backdrop-filter: blur(16px);
     }
-    .header-left  { display: flex; align-items: center; gap: 14px; }
-    .header-right { display: flex; align-items: center; gap: 14px; }
-    .vudio-mark {
-      display: flex; align-items: center; gap: 6px;
-      font-family: var(--mono); font-size: 12px; color: var(--muted);
-      text-decoration: none;
+    .hdr-l { display: flex; align-items: center; gap: 14px; }
+    .hdr-r { display: flex; align-items: center; gap: 12px; }
+    #hdr-logo { height: 26px; width: auto; max-width: 110px; object-fit: contain; display: none; }
+    #hdr-name { font-size: 17px; font-weight: 700; display: none; }
+    .hdr-sep  { color: var(--faint); font-size: 18px; }
+    .hdr-lbl  { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+    .powered  {
+      font-family: var(--font-mono); font-size: 11px; color: var(--dim);
+      border: 1px solid var(--border2); padding: 3px 10px; border-radius: 4px;
     }
-    .vudio-mark .hex { font-size: 15px; color: var(--accent); }
-    .hdr-sep { color: var(--faint); font-size: 18px; user-select: none; }
-    .brand-mark { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 15px; }
-    .brand-mark .logo { font-size: 17px; color: var(--accent); }
-    .hdr-tag {
-      font-family: var(--mono); font-size: 11px; color: var(--muted);
-      border: 1px solid var(--border2); padding: 3px 10px; border-radius: 3px;
+    #back-btn {
+      display: none; font-family: var(--font-mono); font-size: 12px;
+      color: var(--muted); background: none; border: none; cursor: pointer;
+      transition: color .15s; padding: 0;
     }
-    .back-btn {
-      display: none; align-items: center; gap: 6px;
-      font-family: var(--mono); font-size: 12px; color: var(--muted);
-      background: none; border: none; cursor: pointer; padding: 0;
-      transition: color 0.15s;
-    }
-    .back-btn:hover { color: var(--text); }
-    .back-btn.visible { display: flex; }
+    #back-btn:hover { color: var(--text); }
+    #back-btn.on { display: block; }
 
-    /* ══════════════════════════════════════════════
-       LISTING VIEW
-    ══════════════════════════════════════════════ */
-    #listing-view { display: none; }
-    #listing-view.active { display: block; }
+    /* ══════════════════════════════
+       LISTING
+    ══════════════════════════════ */
+    #list-view { display: none; }
+    #list-view.on { display: block; }
 
-    /* Hero */
-    .list-hero {
+    .l-hero {
       max-width: 1100px; margin: 0 auto;
-      padding: 64px 48px 48px;
-      border-bottom: 1px solid var(--border);
+      padding: 60px 48px 44px; border-bottom: 1px solid var(--border);
     }
-    .list-eyebrow {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 20px;
+    .l-eye {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
     }
-    .eyebrow-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--accent); flex-shrink: 0;
+    .l-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    .l-eye span {
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      letter-spacing: .12em; text-transform: uppercase;
     }
-    .eyebrow-text {
-      font-family: var(--mono); font-size: 11px;
-      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+    .l-hero h1 {
+      font-family: var(--font-head); font-size: clamp(30px,4.5vw,56px);
+      font-weight: 700; line-height: 1.08; letter-spacing: -.02em; margin-bottom: 12px;
     }
-    .list-hero h1 {
-      font-family: var(--serif); font-size: clamp(36px, 5vw, 64px);
-      font-weight: 900; line-height: 1.05; letter-spacing: -0.02em;
-      margin-bottom: 14px;
-    }
-    .list-hero h1 em { font-style: italic; font-weight: 400; }
-    .list-hero p {
-      color: var(--muted); font-size: 16px; line-height: 1.7;
-      max-width: 480px; font-weight: 300;
-    }
+    .l-hero p { color: var(--muted); font-size: 15px; line-height: 1.7; max-width: 480px; }
 
-    /* Search + filter */
-    .list-controls {
-      max-width: 1100px; margin: 0 auto;
-      padding: 28px 48px; display: flex;
-      align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 14px;
+    .l-ctrl {
+      max-width: 1100px; margin: 0 auto; padding: 22px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border);
     }
-    .search-wrap {
+    .srch {
       display: flex; align-items: center; gap: 8px;
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 6px; padding: 9px 14px; width: 280px;
-      transition: border-color 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      border-radius: 6px; padding: 8px 14px; width: 250px;
+      box-shadow: var(--shad); transition: border-color .2s;
     }
-    .search-wrap:focus-within { border-color: var(--accent); }
-    .search-wrap input {
+    .srch:focus-within { border-color: var(--accent); }
+    .srch svg { flex-shrink: 0; color: var(--dim); }
+    .srch input {
       background: none; border: none; outline: none;
-      color: var(--text); font-family: var(--mono); font-size: 12px; flex: 1;
+      color: var(--text); font-size: 13px; flex: 1;
+      font-family: var(--font-body);
     }
-    .search-wrap input::placeholder { color: var(--faint); }
-    .tag-bar { display: flex; flex-wrap: wrap; gap: 6px; }
-    .tag-btn {
-      padding: 5px 14px; border-radius: 3px; cursor: pointer;
-      font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em;
+    .srch input::placeholder { color: var(--faint); }
+    #filters { display: flex; flex-wrap: wrap; gap: 6px; }
+    .f-btn {
+      padding: 5px 14px; border-radius: 4px; cursor: pointer;
+      font-size: 12px; font-family: var(--font-mono);
       border: 1px solid var(--border2); background: transparent;
-      color: var(--muted); transition: all 0.15s;
+      color: var(--muted); transition: all .15s;
     }
-    .tag-btn:hover { border-color: var(--text); color: var(--text); }
-    .tag-btn.active {
-      border-color: var(--accent); background: var(--accent);
-      color: var(--bg);
+    .f-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .f-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .l-main { max-width: 1100px; margin: 0 auto; padding: 28px 48px 80px; }
+
+    /* Featured */
+    .feat {
+      display: grid; grid-template-columns: 5fr 4fr;
+      border: 1px solid var(--border); border-radius: var(--r);
+      overflow: hidden; margin-bottom: 22px; cursor: pointer;
+      background: var(--surface); box-shadow: var(--shad);
+      transition: box-shadow .2s, transform .2s;
+    }
+    .feat:hover { box-shadow: var(--shad-h); transform: translateY(-2px); }
+    .feat-body { padding: 36px; display: flex; flex-direction: column; }
+    .f-tag {
+      font-family: var(--font-mono); font-size: 10px; color: var(--accent);
+      border: 1px solid var(--accent-30); padding: 3px 10px;
+      border-radius: 3px; margin-bottom: 14px; width: fit-content;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    .feat-body h2 {
+      font-family: var(--font-head); font-size: clamp(19px,2vw,26px);
+      font-weight: 700; line-height: 1.22; margin-bottom: 12px;
+    }
+    .feat-body p { font-size: 14px; color: var(--muted); line-height: 1.72; flex: 1; }
+    .feat-meta {
+      display: flex; align-items: center; gap: 8px; margin-top: 22px;
+      padding-top: 16px; border-top: 1px solid var(--border);
+    }
+    .f-date, .f-time { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+    .f-sep { color: var(--faint); }
+    .f-read { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+    .feat-vis {
+      background: var(--bg2); position: relative;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; min-height: 240px;
+    }
+    .feat-vis img { width:100%; height:100%; object-fit:cover; display:block; transition: transform .4s; }
+    .feat:hover .feat-vis img { transform: scale(1.03); }
+    .feat-vis .no-img { font-size: 72px; color: var(--accent); opacity: .07; }
+    .new-badge {
+      position: absolute; top: 14px; left: 14px;
+      background: var(--accent); color: #fff;
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: .1em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 3px;
     }
 
     /* Grid */
-    .list-main { max-width: 1100px; margin: 0 auto; padding: 0 48px 80px; }
-
-    /* Featured post */
-    .post-featured {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 0; border: 1px solid var(--border); border-radius: 12px;
-      overflow: hidden; margin-bottom: 32px; cursor: pointer;
-      background: var(--surface); box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-      transition: box-shadow 0.2s, transform 0.2s;
-    }
-    .post-featured:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.08); transform: translateY(-2px); }
-    .post-featured-img {
-      background: var(--bg2); position: relative; min-height: 280px;
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
-    }
-    .post-featured-img .img-logo {
-      font-size: 80px; opacity: 0.12; color: var(--accent);
-      font-family: var(--serif); font-style: italic;
-    }
-    .post-featured-img .feat-badge {
-      position: absolute; top: 20px; left: 20px;
-      background: var(--accent); color: var(--bg);
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
-      text-transform: uppercase; padding: 5px 12px; border-radius: 3px;
-    }
-    .post-featured-body {
-      padding: 36px 40px; display: flex; flex-direction: column;
-      justify-content: space-between;
-    }
-    .post-feat-tag {
-      font-family: var(--mono); font-size: 11px; color: var(--accent);
-      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px;
-    }
-    .post-featured-body h2 {
-      font-family: var(--serif); font-size: clamp(20px, 2.2vw, 26px);
-      font-weight: 700; line-height: 1.25; margin-bottom: 14px;
-    }
-    .post-featured-body p {
-      font-size: 14px; color: var(--muted); line-height: 1.7;
-      font-weight: 300; flex: 1;
-    }
-    .post-meta {
-      display: flex; align-items: center; gap: 12px;
-      margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
-    }
-    .post-meta-date { font-family: var(--mono); font-size: 11px; color: var(--dim); }
-    .post-meta-time { font-family: var(--mono); font-size: 11px; color: var(--dim); }
-    .post-meta-dot { color: var(--faint); }
-    .post-read-link {
-      margin-left: auto; font-family: var(--mono); font-size: 12px;
-      color: var(--text); display: flex; align-items: center; gap: 4px;
-    }
-    .post-keywords { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-    .kw-tag {
-      font-family: var(--mono); font-size: 10px; color: var(--dim);
-      border: 1px solid var(--border); padding: 2px 8px; border-radius: 3px;
-    }
-
-    /* Post grid */
-    .post-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-    .post-card {
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px,1fr)); gap: 14px; }
+    .card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 24px; cursor: pointer;
-      display: flex; flex-direction: column; gap: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+      border-radius: var(--r); overflow: hidden; cursor: pointer;
+      display: flex; flex-direction: column; box-shadow: var(--shad);
+      transition: box-shadow .2s, transform .2s;
     }
-    .post-card:hover {
-      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
-      transform: translateY(-2px); border-color: var(--border2);
-    }
-    .card-top { display: flex; justify-content: space-between; align-items: center; }
-    .card-tag-label {
-      font-family: var(--mono); font-size: 10px;
-      color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase;
-    }
-    .card-time { font-family: var(--mono); font-size: 10px; color: var(--dim); }
-    .post-card h3 {
-      font-family: var(--serif); font-size: 17px; font-weight: 700;
-      line-height: 1.3; color: var(--text2);
-      transition: color 0.15s;
-    }
-    .post-card:hover h3 { color: var(--text); }
-    .post-card p { font-size: 13px; color: var(--muted); line-height: 1.65; flex: 1; font-weight: 300; }
-    .card-foot {
+    .card:hover { box-shadow: var(--shad-h); transform: translateY(-3px); }
+    .card-img { height: 170px; background: var(--bg2); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .card-img img { width:100%; height:100%; object-fit:cover; transition: transform .35s; }
+    .card:hover .card-img img { transform: scale(1.04); }
+    .card-no-img { font-size: 44px; color: var(--accent); opacity: .08; }
+    .card-body { padding: 20px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+    .c-tag { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; }
+    .c-title { font-family: var(--font-head); font-size: 15px; font-weight: 700; line-height: 1.3; color: var(--text2); transition: color .15s; }
+    .card:hover .c-title { color: var(--text); }
+    .c-exc { font-size: 13px; color: var(--muted); line-height: 1.65; flex: 1; }
+    .c-foot {
       display: flex; justify-content: space-between; align-items: center;
-      padding-top: 14px; border-top: 1px solid var(--border);
+      padding-top: 12px; border-top: 1px solid var(--border); margin-top: 6px;
     }
-    .card-date { font-family: var(--mono); font-size: 10px; color: var(--dim); }
-    .card-arrow { font-family: var(--mono); font-size: 12px; color: var(--faint); transition: color 0.15s, transform 0.15s; }
-    .post-card:hover .card-arrow { color: var(--accent); transform: translateX(3px); }
+    .c-date { font-family: var(--font-mono); font-size: 10px; color: var(--dim); }
+    .c-arr  { font-family: var(--font-mono); font-size: 12px; color: var(--dim); transition: color .15s, transform .15s; }
+    .card:hover .c-arr { color: var(--accent); transform: translateX(4px); }
+    .empty { grid-column:1/-1; text-align:center; padding:80px; font-size:13px; color:var(--dim); font-family:var(--font-mono); }
 
-    /* Empty state */
-    .empty-state {
-      grid-column: 1/-1; text-align: center; padding: 80px 20px;
-      color: var(--dim); font-family: var(--mono); font-size: 13px;
-    }
+    /* ══════════════════════════════
+       DETAIL
+    ══════════════════════════════ */
+    #det-view { display: none; }
+    #det-view.on { display: block; }
 
-    /* ══════════════════════════════════════════════
-       ARTICLE VIEW
-    ══════════════════════════════════════════════ */
-    #article-view { display: none; }
-    #article-view.active { display: block; }
-
-    /* Article hero */
-    .article-hero {
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      padding: 64px 48px 48px;
+    .art-hero {
+      background: linear-gradient(160deg, var(--bg) 0%, var(--bg2) 100%);
+      border-bottom: 1px solid var(--border); padding: 52px 0 0;
     }
-    .article-hero-inner { max-width: 760px; margin: 0 auto; }
-    .article-eyebrow {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 22px;
-    }
+    .art-hero-in { max-width: 1100px; margin: 0 auto; padding: 0 48px 36px; }
+    .art-eye { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
     .art-tag {
-      font-family: var(--mono); font-size: 11px; color: var(--accent);
-      letter-spacing: 0.1em; text-transform: uppercase;
-      border: 1px solid var(--accent20); padding: 4px 12px; border-radius: 3px;
+      font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+      border: 1px solid var(--accent-30); padding: 3px 11px;
+      border-radius: 3px; letter-spacing: .08em; text-transform: uppercase;
     }
-    .art-time { font-family: var(--mono); font-size: 11px; color: var(--dim); }
-    .article-hero h1 {
-      font-family: var(--serif); font-size: clamp(28px, 4vw, 48px);
-      font-weight: 900; line-height: 1.1; letter-spacing: -0.02em;
-      margin-bottom: 20px;
+    .art-time { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+    .art-seo  {
+      font-family: var(--font-mono); font-size: 11px; color: #22c55e;
+      border: 1px solid #22c55e30; padding: 3px 9px; border-radius: 3px; display: none;
     }
-    .article-intro {
-      font-size: 18px; color: var(--text2); line-height: 1.75;
-      font-weight: 300; border-left: 3px solid var(--accent);
-      padding-left: 20px; margin-bottom: 28px;
+    .art-hero h1 {
+      font-family: var(--font-head); font-size: clamp(24px,3.8vw,44px);
+      font-weight: 700; line-height: 1.1; letter-spacing: -.02em;
+      margin-bottom: 18px; max-width: 780px;
     }
-    .article-byline {
-      display: flex; align-items: center; gap: 16px;
-      padding-top: 20px; border-top: 1px solid var(--border);
+    .art-exc {
+      font-size: 17px; color: var(--text2); line-height: 1.75;
+      border-left: 3px solid var(--accent); padding-left: 18px;
+      margin-bottom: 26px; max-width: 680px;
     }
-    .byline-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: var(--bg2); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
+    .art-byline {
+      display: flex; align-items: center; gap: 14px;
+      padding-top: 18px; border-top: 1px solid var(--border); flex-wrap: wrap;
     }
-    .byline-text { display: flex; flex-direction: column; gap: 2px; }
-    .byline-name { font-size: 13px; font-weight: 600; }
-    .byline-meta { font-family: var(--mono); font-size: 11px; color: var(--dim); }
-    .byline-vudio {
-      margin-left: auto; font-family: var(--mono); font-size: 11px;
-      color: var(--dim); display: flex; align-items: center; gap: 6px;
-    }
-    .byline-vudio .dot { color: var(--accent); font-size: 14px; }
+    #art-logo { height: 26px; width: auto; max-width: 100px; object-fit: contain; display: none; }
+    .by-info { display: flex; flex-direction: column; gap: 2px; }
+    .by-name { font-size: 13px; font-weight: 600; font-family: var(--font-head); }
+    .by-date { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+    .by-right { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+    .by-right span { color: var(--accent); }
 
-    /* Article body */
-    .article-body-wrap {
-      max-width: 760px; margin: 0 auto; padding: 52px 48px 80px;
+    /* Two-col layout: content + TOC */
+    .det-layout {
+      display: grid; grid-template-columns: 1fr 250px;
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 48px; gap: 48px; align-items: flex-start;
     }
-    .article-body h2 {
-      font-family: var(--serif); font-size: 26px; font-weight: 700;
-      line-height: 1.25; margin: 44px 0 16px;
-      padding-bottom: 12px; border-bottom: 1px solid var(--border);
-    }
-    .article-body h3 {
-      font-family: var(--serif); font-size: 20px; font-weight: 700;
-      margin: 32px 0 12px;
-    }
-    .article-body p {
-      font-size: 16px; color: var(--text2); line-height: 1.85;
-      margin-bottom: 20px; font-weight: 300;
-    }
-    .article-body strong { font-weight: 600; color: var(--text); }
-    .article-body ul {
-      margin: 0 0 20px 0; padding: 0; list-style: none;
-    }
-    .article-body ul li {
-      font-size: 16px; color: var(--text2); line-height: 1.8;
-      padding: 6px 0 6px 22px; position: relative; font-weight: 300;
-    }
-    .article-body ul li::before {
-      content: '—'; position: absolute; left: 0;
-      color: var(--accent); font-weight: 600;
-    }
+    .det-main { padding: 44px 0 80px; min-width: 0; }
 
-    /* Pull quote */
-    .pull-quote {
-      margin: 40px 0; padding: 32px 36px;
-      background: var(--bg2); border-left: 4px solid var(--accent);
-      border-radius: 0 8px 8px 0;
+    /* TOC */
+    .toc { position: sticky; top: 76px; padding-top: 44px; }
+    .toc-lbl {
+      font-family: var(--font-mono); font-size: 10px; color: var(--dim);
+      letter-spacing: .12em; text-transform: uppercase; margin-bottom: 12px;
     }
-    .pull-quote p {
-      font-family: var(--serif); font-size: 22px; font-style: italic;
-      font-weight: 400; line-height: 1.5; color: var(--text);
-      margin: 0;
+    .toc ul { list-style: none; display: flex; flex-direction: column; gap: 0; }
+    .toc li a {
+      display: block; font-size: 12px; color: var(--muted); text-decoration: none;
+      padding: 5px 0 5px 12px; border-left: 2px solid var(--border);
+      line-height: 1.4; transition: color .15s, border-color .15s;
     }
-    .pull-quote cite {
-      display: block; margin-top: 12px;
-      font-family: var(--mono); font-size: 11px;
-      color: var(--dim); font-style: normal;
-    }
+    .toc li a:hover { color: var(--text); border-color: var(--accent-30); }
+    .toc li.act a { color: var(--accent); border-color: var(--accent); }
 
-    /* Data callout */
-    .data-callout {
-      margin: 32px 0; padding: 24px 28px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; display: flex; align-items: flex-start; gap: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    /* Article HTML from DB */
+    .art-body h1 {
+      font-family: var(--font-head); font-size: 28px; font-weight: 700;
+      line-height: 1.2; margin: 0 0 20px;
     }
-    .data-callout .stat {
-      font-family: var(--serif); font-size: 40px; font-weight: 900;
-      color: var(--accent); line-height: 1; white-space: nowrap;
+    .art-body h2 {
+      font-family: var(--font-head); font-size: 22px; font-weight: 700;
+      line-height: 1.25; margin: 40px 0 14px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+      scroll-margin-top: 76px;
     }
-    .data-callout .stat-desc { font-size: 14px; color: var(--muted); line-height: 1.6; font-weight: 300; }
-    .data-callout .stat-desc strong { color: var(--text); font-weight: 600; }
+    .art-body h3 {
+      font-family: var(--font-head); font-size: 17px; font-weight: 700;
+      margin: 28px 0 10px; scroll-margin-top: 76px;
+    }
+    .art-body h4 { font-family: var(--font-head); font-size: 15px; font-weight: 700; margin: 22px 0 8px; color: var(--text2); }
+    .art-body p  { font-size: 16px; color: var(--text2); line-height: 1.85; margin-bottom: 18px; }
+    .art-body strong { font-weight: 600; color: var(--text); }
+    .art-body em     { font-style: italic; }
+    .art-body a      { color: var(--accent); text-decoration: underline; text-decoration-color: var(--accent-30); }
+    .art-body a:hover{ text-decoration-color: var(--accent); }
+    .art-body ul, .art-body ol { margin: 0 0 18px; }
+    .art-body ul { list-style: none; padding: 0; }
+    .art-body ul li {
+      position: relative; padding-left: 20px;
+      font-size: 16px; color: var(--text2); line-height: 1.8; margin-bottom: 5px;
+    }
+    .art-body ul li::before { content: '—'; position: absolute; left: 0; color: var(--accent); font-weight: 600; }
+    .art-body ol { padding-left: 22px; }
+    .art-body ol li { font-size: 16px; color: var(--text2); line-height: 1.8; margin-bottom: 5px; padding-left: 4px; }
+    .art-body hr   { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .art-body blockquote {
+      border-left: 4px solid var(--accent); margin: 28px 0;
+      padding: 18px 22px; background: var(--bg2); border-radius: 0 8px 8px 0;
+      font-style: italic; font-size: 17px; color: var(--text2); line-height: 1.65;
+    }
+    /* Override inline CTA button styles from DB content */
+    .art-body a[style*="background"] {
+      background-color: var(--accent) !important;
+      color: #fff !important; display: inline-block !important;
+      padding: 13px 26px !important; border-radius: 7px !important;
+      text-decoration: none !important; font-weight: 700 !important;
+      margin-top: 14px; transition: opacity .15s;
+    }
+    .art-body a[style*="background"]:hover { opacity: .88; }
 
-    /* Key takeaways */
-    .takeaways {
-      margin: 44px 0; padding: 28px 32px;
-      background: var(--text); color: var(--bg); border-radius: 10px;
-    }
-    .takeaways h4 {
-      font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
-      text-transform: uppercase; margin-bottom: 16px; opacity: 0.5;
-    }
-    .takeaways ul { list-style: none; padding: 0; margin: 0; }
-    .takeaways ul li {
-      font-size: 15px; line-height: 1.65; padding: 8px 0 8px 20px;
-      position: relative; font-weight: 300; opacity: 0.9;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .takeaways ul li:last-child { border-bottom: none; }
-    .takeaways ul li::before {
-      content: '✓'; position: absolute; left: 0;
-      font-weight: 700; opacity: 0.6;
-    }
+    /* Related */
+    .rel-strip { background: var(--bg2); border-top: 1px solid var(--border); padding: 44px 48px; display: none; }
+    .rel-in { max-width: 1100px; margin: 0 auto; }
+    .rel-title { font-family: var(--font-head); font-size: 19px; font-weight: 700; margin-bottom: 20px; }
+    .rel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; }
+    .rel-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; cursor: pointer; transition: box-shadow .2s, transform .2s; }
+    .rel-card:hover { box-shadow: var(--shad-h); transform: translateY(-2px); }
+    .rel-tag  { font-family: var(--font-mono); font-size: 10px; color: var(--accent); margin-bottom: 7px; }
+    .rel-card h4 { font-family: var(--font-head); font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 7px; }
+    .rel-time { font-family: var(--font-mono); font-size: 10px; color: var(--dim); }
 
-    /* SEO keywords section */
-    .seo-footer {
-      margin-top: 52px; padding-top: 24px; border-top: 1px solid var(--border);
-    }
-    .seo-footer-label {
-      font-family: var(--mono); font-size: 10px; color: var(--dim);
-      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px;
-    }
-    .kw-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .kw-pill {
-      font-family: var(--mono); font-size: 11px; color: var(--muted);
-      border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px;
-      background: var(--surface);
-    }
-
-    /* Related posts */
-    .related-section {
-      background: var(--bg2); border-top: 1px solid var(--border);
-      padding: 52px 48px;
-    }
-    .related-inner { max-width: 760px; margin: 0 auto; }
-    .related-section h3 {
-      font-family: var(--serif); font-size: 22px; font-weight: 700;
-      margin-bottom: 24px;
-    }
-    .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
-    .related-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; padding: 20px; cursor: pointer;
-      transition: box-shadow 0.2s, transform 0.2s;
-    }
-    .related-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-2px); }
-    .related-tag { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-bottom: 8px; }
-    .related-card h4 { font-family: var(--serif); font-size: 15px; font-weight: 700; line-height: 1.3; margin-bottom: 10px; }
-    .related-time { font-family: var(--mono); font-size: 10px; color: var(--dim); }
-
-    /* ══ FOOTER ══ */
-    footer {
-      border-top: 1px solid var(--border); padding: 24px 48px;
+    /* Footer */
+    .site-foot {
+      border-top: 1px solid var(--border); padding: 20px 48px;
       display: flex; justify-content: space-between; align-items: center;
-      flex-wrap: wrap; gap: 12px; background: var(--surface);
+      flex-wrap: wrap; gap: 10px; background: var(--surface);
     }
-    .footer-brand {
-      display: flex; align-items: center; gap: 8px;
-      font-family: var(--mono); font-size: 12px; color: var(--dim);
-    }
-    .footer-brand .hex { color: var(--accent); font-size: 14px; }
-    .footer-right { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+    .foot-l { display: flex; align-items: center; gap: 10px; }
+    .foot-logo { height: 20px; object-fit: contain; display: none; }
+    .foot-txt  { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+    .foot-r    { font-family: var(--font-mono); font-size: 11px; color: var(--faint); }
 
-    /* ── ANIMATIONS ── */
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-    .animate { animation: fadeUp 0.4s ease both; }
-    .animate-delay-1 { animation-delay: 0.08s; }
-    .animate-delay-2 { animation-delay: 0.16s; }
-    .animate-delay-3 { animation-delay: 0.24s; }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(13px)} to{opacity:1;transform:none} }
+    .ani    { animation: fadeUp .36s ease both; }
+    .ani-1  { animation-delay: .07s; }
+    .ani-2  { animation-delay: .14s; }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 768px) {
-      header { padding: 0 20px; }
-      .list-hero, .list-controls, .list-main, .article-hero,
-      .related-section, footer { padding-left: 20px; padding-right: 20px; }
-      .article-body-wrap { padding: 36px 20px 60px; }
-      .post-featured { grid-template-columns: 1fr; }
-      .post-featured-img { min-height: 180px; }
+    @media (max-width: 900px) { .det-layout { grid-template-columns: 1fr; } .toc { display: none; } }
+    @media (max-width: 640px) {
+      #hdr,.l-hero,.l-ctrl,.l-main,.art-hero-in,.det-layout,.rel-strip,.site-foot { padding-left:20px;padding-right:20px; }
+      .det-main { padding: 32px 0 60px; }
+      .feat { grid-template-columns: 1fr; }
+      .feat-vis { min-height: 160px; order: -1; }
     }
   </style>
 </head>
 <body>
+  <div id="prog"></div>
 
-  <div id="progress-bar"></div>
-
-  <!-- LOADING -->
   <div id="loading">
-    <div class="loader-ring"></div>
+    <div class="ring"></div>
+    <p id="load-msg">Loading…</p>
   </div>
 
-  <!-- ERROR -->
-  <div id="error-screen">
-    <h2>Brand not found</h2>
-    <p id="error-msg">No brand config found for this slug.</p>
-    <a href="https://vudio.ai">← Back to vudio.ai</a>
+  <div id="err">
+    <h2>Something went wrong</h2>
+    <p id="err-msg">Could not load this blog.</p>
+    <a href="/">← Go back</a>
   </div>
 
-  <!-- SHARED HEADER -->
   <div id="page" style="display:none">
-    <header>
-      <div class="header-left">
-        <a class="vudio-mark" href="https://vudio.ai"><span class="hex">⬡</span> vudio.ai</a>
+
+    <!-- HEADER -->
+    <header id="hdr">
+      <div class="hdr-l">
+        <img id="hdr-logo" src="" alt="" />
+        <span id="hdr-name"></span>
         <span class="hdr-sep">|</span>
-        <div class="brand-mark">
-          <span class="logo" id="hdr-logo"></span>
-          <span id="hdr-name"></span>
-        </div>
+        <span class="hdr-lbl">Blog</span>
       </div>
-      <div class="header-right">
-        <span class="hdr-tag" id="hdr-tag">SEO BLOG</span>
-        <button class="back-btn" id="back-btn" onclick="goListing()">← All Articles</button>
+      <div class="hdr-r">
+        <span class="powered">by vudio.ai</span>
+        <button id="back-btn" onclick="goList()">← All posts</button>
       </div>
     </header>
 
-    <!-- ══ LISTING VIEW ══ -->
-    <div id="listing-view">
-      <div class="list-hero animate">
-        <div class="list-eyebrow">
-          <div class="eyebrow-dot" id="eyebrow-dot"></div>
-          <span class="eyebrow-text" id="eyebrow-tagline"></span>
+    <!-- ══ LISTING ══ -->
+    <div id="list-view">
+      <div class="l-hero ani">
+        <div class="l-eye">
+          <div class="l-dot"></div>
+          <span id="l-tagline"></span>
         </div>
-        <h1><span id="list-brand-name"></span> <em>Insights</em></h1>
-        <p>Expert content powered by AI keyword research. Every article optimised by vudio.ai.</p>
+        <h1 id="l-title">Blog</h1>
+        <p id="l-desc"></p>
       </div>
 
-      <div class="list-controls animate animate-delay-1">
-        <div class="search-wrap">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:var(--dim)">
+      <div class="l-ctrl ani ani-1">
+        <div class="srch">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
             <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
             <path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
-          <input type="text" id="search-input" placeholder="Search articles…" />
+          <input type="text" id="srch-inp" placeholder="Search articles…" />
         </div>
-        <div class="tag-bar" id="tag-bar"></div>
+        <div id="filters"></div>
       </div>
 
-      <div class="list-main animate animate-delay-2">
-        <div id="featured-slot"></div>
-        <div class="post-grid" id="post-grid"></div>
+      <div class="l-main ani ani-2">
+        <div id="feat-slot"></div>
+        <div class="grid" id="grid"></div>
       </div>
 
-      <footer>
-        <div class="footer-brand">
-          <span class="hex">⬡</span>
-          <span id="footer-url"></span>
+      <footer class="site-foot">
+        <div class="foot-l">
+          <img class="foot-logo" id="foot-logo" src="" alt=""/>
+          <span class="foot-txt" id="foot-txt"></span>
         </div>
-        <div class="footer-right">SEO content by vudio.ai · All rights reserved</div>
+        <div class="foot-r">Powered by vudio.ai · All rights reserved</div>
       </footer>
     </div>
 
-    <!-- ══ ARTICLE VIEW ══ -->
-    <div id="article-view">
-      <div class="article-hero">
-        <div class="article-hero-inner animate">
-          <div class="article-eyebrow">
-            <span class="art-tag" id="art-tag"></span>
-            <span class="art-time" id="art-time"></span>
+    <!-- ══ DETAIL ══ -->
+    <div id="det-view">
+      <div class="art-hero">
+        <div class="art-hero-in ani">
+          <div class="art-eye">
+            <span class="art-tag" id="a-tag"></span>
+            <span class="art-time" id="a-time"></span>
+            <span class="art-seo" id="a-seo"></span>
           </div>
-          <h1 id="art-title"></h1>
-          <p class="article-intro" id="art-intro"></p>
-          <div class="article-byline">
-            <div class="byline-avatar" id="art-avatar"></div>
-            <div class="byline-text">
-              <span class="byline-name" id="art-byline-brand"></span>
-              <span class="byline-meta" id="art-byline-date"></span>
+          <h1 id="a-title"></h1>
+          <p class="art-exc" id="a-exc"></p>
+          <div class="art-byline">
+            <img id="art-logo" src="" alt=""/>
+            <div class="by-info">
+              <span class="by-name" id="a-bname"></span>
+              <span class="by-date" id="a-bdate"></span>
             </div>
-            <div class="byline-vudio">
-              <span class="dot">⬡</span> Powered by vudio.ai
-            </div>
+            <div class="by-right"><span>●</span> Powered by vudio.ai</div>
           </div>
         </div>
       </div>
 
-      <div class="article-body-wrap">
-        <div class="article-body" id="article-body"></div>
-        <div class="seo-footer">
-          <div class="seo-footer-label">Topics covered</div>
-          <div class="kw-list" id="art-keywords"></div>
+      <div class="det-layout">
+        <div class="det-main">
+          <div class="art-body" id="art-body"></div>
+        </div>
+        <aside class="toc">
+          <div class="toc-lbl">In this article</div>
+          <ul id="toc"></ul>
+        </aside>
+      </div>
+
+      <div class="rel-strip" id="rel-strip">
+        <div class="rel-in">
+          <div class="rel-title">More articles</div>
+          <div class="rel-grid" id="rel-grid"></div>
         </div>
       </div>
 
-      <div class="related-section" id="related-section">
-        <div class="related-inner">
-          <h3>More from <span id="related-brand-name"></span></h3>
-          <div class="related-grid" id="related-grid"></div>
+      <footer class="site-foot">
+        <div class="foot-l">
+          <img class="foot-logo" id="foot-logo-d" src="" alt=""/>
+          <span class="foot-txt" id="foot-txt-d"></span>
         </div>
-      </div>
-
-      <footer>
-        <div class="footer-brand">
-          <span class="hex">⬡</span>
-          <span id="footer-url-art"></span>
-        </div>
-        <div class="footer-right">SEO content by vudio.ai · All rights reserved</div>
+        <div class="foot-r">Powered by vudio.ai · All rights reserved</div>
       </footer>
     </div>
-  </div>
 
-  <script>
-    // ── URL helpers ─────────────────────────────────────────
-    function getParam(key) {
-      return new URLSearchParams(window.location.search).get(key);
-    }
-    function getSlug() {
-      const p = getParam('brand');
-      if (p) return p;
-      const parts = window.location.pathname.replace(/\/$/, '').split('/');
-      const last  = parts[parts.length - 1];
-      return (last && last !== 'index.html') ? last : null;
-    }
+  </div><!-- /#page -->
 
-    // ── Theme ────────────────────────────────────────────────
-    function applyTheme(accent) {
-      const r = document.documentElement.style;
-      r.setProperty('--accent',   accent);
-      r.setProperty('--accent10', accent + '10');
-      r.setProperty('--accent20', accent + '30');
-    }
+<script>
+/* ═══════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const R = document.documentElement;
 
-    // ── Article content generator ────────────────────────────
-    function generateArticleHTML(post, brand) {
-      const kw  = post.keywords;
-      const tag = post.tag;
+function css(prop, val) { R.style.setProperty(prop, val); }
 
-      // Build structured article sections from post data
-      return `
-        <h2>The Challenge Brands Like ${brand.name} Are Addressing</h2>
-        <p>${post.excerpt}</p>
-        <p>In a market where consumers are more informed than ever, brands competing in the <strong>${tag.toLowerCase()}</strong> space face a growing demand for transparency, efficacy, and personalisation. ${brand.name} has positioned itself at the intersection of these expectations — combining technology with deep category expertise.</p>
+function fmtDate(d) {
+  if (!d) return '';
+  return new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+}
 
-        <div class="data-callout">
-          <div class="stat">73%</div>
-          <div class="stat-desc"><strong>of consumers</strong> now research a brand's ingredient or methodology claims before purchasing. This shift has made content strategy inseparable from product strategy for brands like ${brand.name}.</div>
-        </div>
+function loadGFont(family) {
+  if (!family) return;
+  const l = document.createElement('link');
+  l.rel  = 'stylesheet';
+  l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@400;600;700;900&display=swap`;
+  document.head.appendChild(l);
+}
 
-        <h2>Why This Matters Right Now</h2>
-        <p>The landscape around <strong>${kw[0]}</strong> has shifted dramatically over the past 18 months. Search intent has matured from broad awareness queries to highly specific, outcome-oriented searches — signalling a consumer base that is educated, sceptical, and ready to commit when trust is established.</p>
-        <p>${brand.name}'s approach to this moment is deliberate. Rather than competing on volume of claims, the brand has doubled down on the quality of its reasoning — explaining not just what works, but <em>why</em> it works at a mechanistic level.</p>
+/* ─── Brand name from domain ───
+   blog.vudio.ai    → "vudio"
+   blog.foxtale.com → "foxtale"
+   ?brand=xxx       → "xxx"  (testing)
+*/
+function getBrandName() {
+  const p = new URLSearchParams(location.search).get('brand');
+  if (p) return p.toLowerCase();
+  const parts = location.hostname.split('.');
+  // blog.brandname.com  → parts = ['blog','brandname','com'] → parts[1]
+  // blog.brandname.ai   → parts = ['blog','brandname','ai']  → parts[1]
+  if (parts.length >= 3 && parts[0] === 'blog') return parts[1].toLowerCase();
+  // fallback: vudio-blogs.pages.dev → can't detect, need ?brand=
+  return null;
+}
 
-        <div class="pull-quote">
-          <p>"The most valuable thing a brand can do today is reduce the cognitive load of making a good decision. That's what great content does — it doesn't sell, it clarifies."</p>
-          <cite>— ${brand.name} Content Philosophy</cite>
-        </div>
+/* ─── Route detection ─── */
+function getRoute() {
+  const path = location.pathname.replace(/\/$/, '');
+  if (!path || path === '') return { type: 'list' };
+  const slug = path.split('/').filter(Boolean).pop();
+  return { type: 'detail', slug };
+}
 
-        <h2>The Science Behind ${kw[1] ? kw[1].charAt(0).toUpperCase() + kw[1].slice(1) : tag}</h2>
-        <p>Understanding <strong>${kw[1] || kw[0]}</strong> requires moving beyond surface-level category knowledge. The mechanisms at play involve multiple interacting systems — and the brands that communicate this complexity accurately tend to earn disproportionate trust.</p>
-        <ul>
-          <li>The foundational biology or chemistry that makes this category work</li>
-          <li>How formulation or process decisions affect real-world outcomes</li>
-          <li>Where most conventional approaches fall short — and why</li>
-          <li>The specific differentiator that ${brand.name} brings to the equation</li>
-        </ul>
+/* ═══════════════════════════════════════════════════
+   APPLY BRAND KIT
+   Expects: { colors, fonts, logos, tagline, description }
+═══════════════════════════════════════════════════ */
+function applyKit(kit) {
+  const accent = kit.colors?.accent || kit.colors?.primary || '#111111';
+  css('--accent',    accent);
+  css('--accent-10', accent + '14');
+  css('--accent-30', accent + '40');
 
-        <h2>What the Data Shows</h2>
-        <p>Across thousands of user interactions and feedback loops, ${brand.name} has identified a consistent pattern: customers who understand <em>why</em> something works are 2–3x more likely to use it correctly, and 4x more likely to report meaningful results. This has shaped every content decision the brand makes.</p>
-        <p>The category of <strong>${kw[2] || kw[0]}</strong> is particularly illustrative. Early adopters often over-apply, under-layer, or combine products incorrectly — not from lack of interest, but from lack of clear, credible guidance. ${brand.name}'s content directly addresses these failure modes.</p>
+  if (kit.colors?.background) {
+    css('--bg',  kit.colors.background);
+    css('--bg2', kit.colors.background);
+  }
+  if (kit.colors?.secondary) css('--surface', kit.colors.secondary);
+  if (kit.colors?.primary)   css('--text',    kit.colors.primary);
 
-        <div class="takeaways">
-          <h4>Key Takeaways</h4>
-          <ul>
-            <li>Efficacy depends heavily on usage context — not just ingredient quality</li>
-            <li>${kw[0].charAt(0).toUpperCase() + kw[0].slice(1)} is increasingly searchable, signalling strong organic opportunity</li>
-            <li>${brand.name} leads with mechanism, not marketing — building durable trust</li>
-            <li>Consumer education and product adoption are now the same motion</li>
-            <li>Brands that publish rigorously gain search authority and customer loyalty simultaneously</li>
-          </ul>
-        </div>
+  if (kit.fonts?.heading) {
+    loadGFont(kit.fonts.heading);
+    css('--font-head', `'${kit.fonts.heading}', Georgia, serif`);
+  }
+  if (kit.fonts?.body) {
+    loadGFont(kit.fonts.body);
+    css('--font-body', `'${kit.fonts.body}', system-ui, sans-serif`);
+  }
 
-        <h2>How ${brand.name} Is Different</h2>
-        <p>${brand.name} treats content not as a marketing layer on top of a product, but as an expression of the same rigour that goes into its formulation or methodology. Every article is developed with the same standards it applies to product R&D — evidence-based, precise, and honest about limitations.</p>
-        <p>This approach has compounding returns: each piece of content builds on the last, creating a body of knowledge that positions the brand as the authoritative voice in its category over time. It's the reason ${brand.name} invests in infrastructure like this — powered by vudio.ai's SEO content engine.</p>
-      `;
-    }
+  const logo = kit.logos?.primary || kit.logos?.favicon;
+  ['hdr-logo','art-logo','foot-logo','foot-logo-d'].forEach(id => {
+    const el = $(id); if (!el) return;
+    if (logo) { el.src = logo; el.style.display = 'block'; }
+  });
+  if (!logo) {
+    $('hdr-name').textContent    = kit.name || '';
+    $('hdr-name').style.display  = 'block';
+  }
 
-    // ── State ────────────────────────────────────────────────
-    let BRAND      = null;
-    let POSTS      = [];
-    let activeTag  = 'All';
-    let searchTerm = '';
-    let currentPost = null;
+  $('l-tagline').textContent   = kit.tagline || '';
+  $('l-desc').textContent      = kit.description?.slice(0, 160) || '';
+  ['foot-txt','foot-txt-d'].forEach(id => {
+    const el = $(id); if (el) el.textContent = kit.tagline || '';
+  });
 
-    // ── Tag bar ──────────────────────────────────────────────
-    function renderTags() {
-      const tags = ['All', ...new Set(POSTS.map(p => p.tag))];
-      const bar  = document.getElementById('tag-bar');
-      bar.innerHTML = '';
-      tags.forEach(tag => {
-        const btn = document.createElement('button');
-        btn.className = 'tag-btn' + (tag === activeTag ? ' active' : '');
-        btn.textContent = tag;
-        btn.onclick = () => { activeTag = tag; renderTags(); renderListing(); };
-        bar.appendChild(btn);
-      });
-    }
+  document.title = `${kit.tagline || ''} — Blog`;
+  const meta = document.querySelector('meta[name="description"]');
+  if (meta) meta.content = kit.description || '';
+}
 
-    // ── Listing ──────────────────────────────────────────────
-    function renderListing() {
-      const filtered = POSTS.filter(p => {
-        const matchTag    = activeTag === 'All' || p.tag === activeTag;
-        const matchSearch = !searchTerm ||
-          p.title.toLowerCase().includes(searchTerm) ||
-          p.excerpt.toLowerCase().includes(searchTerm);
-        return matchTag && matchSearch;
-      });
+/* ═══════════════════════════════════════════════════
+   API
+   Kit fetched by brand name; blogs fetched by brand ID
+═══════════════════════════════════════════════════ */
+let API_BASE = '';
 
-      const featSlot = document.getElementById('featured-slot');
-      const grid     = document.getElementById('post-grid');
-      featSlot.innerHTML = '';
-      grid.innerHTML = '';
+// GET /api/public/brands/:brandName → returns { data: { brand, kit } }
+async function apiFetchKit(brandName) {
+  const r = await fetch(`${API_BASE}/brands/${brandName}`);
+  if (!r.ok) throw new Error(`Brand not found: ${brandName}`);
+  return r.json();
+}
 
-      if (!filtered.length) {
-        grid.innerHTML = `<div class="empty-state">No articles match your search.</div>`;
-        return;
-      }
+// GET /api/public/brands/:brandId/blogs?status=published
+async function apiFetchBlogs(brandId) {
+  const r = await fetch(`${API_BASE}/brands/${brandId}/blogs?status=published`);
+  if (!r.ok) throw new Error('Could not fetch blogs');
+  const data = await r.json();
+  return data.data?.blogs || [];
+}
 
-      const featured = filtered.find(p => p.featured);
-      const rest     = filtered.filter(p => !p.featured);
+// GET /api/public/brands/:brandId/blogs/:blogSlug
+async function apiFetchBlog(brandId, blogSlug) {
+  const r = await fetch(`${API_BASE}/brands/${brandId}/blogs/${blogSlug}`);
+  if (!r.ok) throw new Error(`Blog not found: ${blogSlug}`);
+  const data = await r.json();
+  return data.data.blog;
+}
 
-      if (featured) {
-        const el = makeFeaturedCard(featured);
-        featSlot.appendChild(el);
-      }
-      rest.forEach(p => grid.appendChild(makePostCard(p)));
-    }
+/* ═══════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════ */
+let BRAND_NAME = '';
+let BRAND_ID   = '';
+let KIT        = null;
+let POSTS      = [];
+let activeFilter = 'All';
+let search       = '';
+let progHandler  = null;
 
-    function makeFeaturedCard(p) {
-      const d = document.createElement('div');
-      d.className = 'post-featured';
-      d.innerHTML = `
-        <div class="post-featured-img">
-          <span class="img-logo">${BRAND.logo}</span>
-          <span class="feat-badge">Featured</span>
-        </div>
-        <div class="post-featured-body">
-          <div>
-            <div class="post-feat-tag">${p.tag}</div>
-            <h2>${p.title}</h2>
-            <p>${p.excerpt}</p>
-            <div class="post-keywords">
-              ${p.keywords.map(k => `<span class="kw-tag">#${k.replace(/ /g,'-')}</span>`).join('')}
-            </div>
-          </div>
-          <div class="post-meta">
-            <span class="post-meta-date">${p.date}</span>
-            <span class="post-meta-dot">·</span>
-            <span class="post-meta-time">${p.readTime}</span>
-            <span class="post-read-link">Read article →</span>
-          </div>
-        </div>`;
-      d.onclick = () => openArticle(p.id);
-      return d;
-    }
+/* ═══════════════════════════════════════════════════
+   LISTING
+═══════════════════════════════════════════════════ */
+function buildFilters() {
+  const cats = ['All', ...new Set(POSTS.map(p => cap(p.category || p.keyword || 'General')))];
+  $('filters').innerHTML = '';
+  cats.slice(0, 7).forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'f-btn' + (c === activeFilter ? ' on' : '');
+    b.textContent = c;
+    b.onclick = () => { activeFilter = c; buildFilters(); renderList(); };
+    $('filters').appendChild(b);
+  });
+}
 
-    function makePostCard(p) {
-      const d = document.createElement('div');
-      d.className = 'post-card animate';
-      d.innerHTML = `
-        <div class="card-top">
-          <span class="card-tag-label">${p.tag}</span>
-          <span class="card-time">${p.readTime}</span>
-        </div>
-        <h3>${p.title}</h3>
-        <p>${p.excerpt}</p>
-        <div class="card-foot">
-          <span class="card-date">${p.date}</span>
-          <span class="card-arrow">→</span>
-        </div>`;
-      d.onclick = () => openArticle(p.id);
-      return d;
-    }
+function renderList() {
+  const f = POSTS.filter(p => {
+    const mc = activeFilter === 'All' || cap(p.category||p.keyword||'General') === activeFilter;
+    const ms = !search || p.title.toLowerCase().includes(search) || (p.excerpt||'').toLowerCase().includes(search);
+    return mc && ms;
+  });
 
-    // ── Article ──────────────────────────────────────────────
-    function openArticle(postId) {
-      const post = POSTS.find(p => p.id === postId);
-      if (!post) return;
-      currentPost = post;
+  $('feat-slot').innerHTML = '';
+  $('grid').innerHTML      = '';
 
-      // Populate article
-      document.getElementById('art-tag').textContent      = post.tag;
-      document.getElementById('art-time').textContent     = post.readTime;
-      document.getElementById('art-title').textContent    = post.title;
-      document.getElementById('art-intro').textContent    = post.excerpt;
-      document.getElementById('art-avatar').textContent   = BRAND.logo;
-      document.getElementById('art-byline-brand').textContent = BRAND.name + ' Editorial';
-      document.getElementById('art-byline-date').textContent  = post.date + ' · Powered by vudio.ai';
-      document.getElementById('footer-url-art').textContent   = 'vudio.ai/blogs/' + BRAND.slug;
-      document.getElementById('related-brand-name').textContent = BRAND.name;
+  if (!f.length) { $('grid').innerHTML = '<div class="empty">No articles found.</div>'; return; }
 
-      // Body
-      document.getElementById('article-body').innerHTML = generateArticleHTML(post, BRAND);
+  const [top, ...rest] = f;
+  $('feat-slot').appendChild(makeFeat(top));
+  rest.forEach((p, i) => {
+    const el = makeCard(p);
+    el.style.animationDelay = (i * .05) + 's';
+    $('grid').appendChild(el);
+  });
+}
 
-      // Keywords
-      const kwList = document.getElementById('art-keywords');
-      kwList.innerHTML = post.keywords.map(k =>
-        `<span class="kw-pill">${k}</span>`
-      ).join('');
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
-      // Related posts
-      const related = POSTS.filter(p => p.id !== postId).slice(0, 3);
-      const rGrid   = document.getElementById('related-grid');
-      rGrid.innerHTML = related.map(p => `
-        <div class="related-card" onclick="openArticle(${p.id})">
-          <div class="related-tag">${p.tag}</div>
-          <h4>${p.title}</h4>
-          <div class="related-time">${p.readTime}</div>
-        </div>
-      `).join('');
+function makeFeat(p) {
+  const d = document.createElement('div');
+  d.className = 'feat';
+  const tag = cap(p.category || p.keyword || 'Article');
+  d.innerHTML = `
+    <div class="feat-body">
+      <span class="f-tag">${tag}</span>
+      <h2>${p.title}</h2>
+      <p>${p.excerpt || ''}</p>
+      <div class="feat-meta">
+        <span class="f-date">${fmtDate(p.publishedAt)}</span>
+        <span class="f-sep">·</span>
+        <span class="f-time">${p.readTimeMinutes || '?'} min read</span>
+        <span class="f-read">Read article →</span>
+      </div>
+    </div>
+    <div class="feat-vis">
+      <span class="new-badge">Latest</span>
+      <span class="no-img">✦</span>
+    </div>`;
+  d.onclick = () => navDetail(p.slug);
+  return d;
+}
 
-      // Switch views
-      document.getElementById('listing-view').classList.remove('active');
-      document.getElementById('article-view').classList.add('active');
-      document.getElementById('back-btn').classList.add('visible');
-      document.getElementById('hdr-tag').style.display = 'none';
+function makeCard(p) {
+  const d = document.createElement('div');
+  d.className = 'card ani';
+  const tag = cap(p.category || p.keyword || 'Article');
+  d.innerHTML = `
+    <div class="card-img"><span class="card-no-img">✦</span></div>
+    <div class="card-body">
+      <span class="c-tag">${tag}</span>
+      <div class="c-title">${p.title}</div>
+      <div class="c-exc">${p.excerpt || ''}</div>
+      <div class="c-foot">
+        <span class="c-date">${fmtDate(p.publishedAt)} · ${p.readTimeMinutes||'?'} min</span>
+        <span class="c-arr">→</span>
+      </div>
+    </div>`;
+  d.onclick = () => navDetail(p.slug);
+  return d;
+}
 
-      // Reading progress
-      window.scrollTo({ top: 0 });
-      setupProgress();
-    }
+/* ═══════════════════════════════════════════════════
+   DETAIL
+═══════════════════════════════════════════════════ */
+async function navDetail(slug) {
+  $('load-msg').textContent = 'Loading article…';
+  $('loading').style.opacity = '.6';
+  $('loading').style.pointerEvents = 'none';
+  try {
+    const blog = await apiFetchBlog(BRAND_ID, slug);
+    showDetail(blog);
+    history.pushState({}, '', '/' + slug);
+  } catch(e) { showErr('Could not load this article. ' + e.message); }
+  finally {
+    $('loading').style.opacity = '0';
+    $('loading').style.pointerEvents = 'none';
+  }
+}
 
-    function goListing() {
-      document.getElementById('article-view').classList.remove('active');
-      document.getElementById('listing-view').classList.add('active');
-      document.getElementById('back-btn').classList.remove('visible');
-      document.getElementById('hdr-tag').style.display = '';
-      window.scrollTo({ top: 0 });
-      teardownProgress();
-    }
+function showDetail(blog) {
+  const tag  = cap(blog.category || blog.keyword || 'Article');
+  const logo = KIT?.logos?.primary || KIT?.logos?.favicon;
 
-    // ── Reading progress ─────────────────────────────────────
-    let progressHandler = null;
-    function setupProgress() {
-      const bar = document.getElementById('progress-bar');
-      progressHandler = () => {
-        const el   = document.getElementById('article-view');
-        const top  = el.getBoundingClientRect().top;
-        const h    = el.scrollHeight - window.innerHeight;
-        const pct  = Math.min(100, Math.max(0, (-top / h) * 100));
-        bar.style.width = pct + '%';
-      };
-      window.addEventListener('scroll', progressHandler);
-    }
-    function teardownProgress() {
-      if (progressHandler) window.removeEventListener('scroll', progressHandler);
-      document.getElementById('progress-bar').style.width = '0%';
-    }
+  $('a-tag').textContent   = tag;
+  $('a-time').textContent  = `${blog.readTimeMinutes || '?'} min read`;
+  $('a-title').textContent = blog.title;
+  $('a-exc').textContent   = blog.excerpt || '';
+  $('a-bname').textContent = KIT?.name || cap(BRAND_NAME) + ' Editorial';
+  $('a-bdate').textContent = blog.publishedAt ? `Published ${fmtDate(blog.publishedAt)}` : '';
 
-    // ── Search ───────────────────────────────────────────────
-    document.getElementById('search-input').addEventListener('input', e => {
-      searchTerm = e.target.value.toLowerCase().trim();
-      renderListing();
+  if (blog.seoScore) { $('a-seo').textContent = `SEO ${blog.seoScore}`; $('a-seo').style.display = 'inline-block'; }
+  if (logo) { $('art-logo').src = logo; $('art-logo').style.display = 'block'; }
+
+  // Inject full HTML content from DB
+  $('art-body').innerHTML = blog.content || '<p>No content available.</p>';
+
+  // Table of contents
+  const toc = $('toc'); toc.innerHTML = '';
+  if (blog.sections?.length) {
+    blog.sections.forEach(s => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="#${s.anchor}">${s.heading}</a>`;
+      toc.appendChild(li);
     });
+    observeTOC();
+  }
 
-    // ── Boot ─────────────────────────────────────────────────
-    async function boot() {
-      const slug = getSlug();
-      if (!slug) {
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('error-msg').textContent = 'Add ?brand=novaskin to the URL.';
-        document.getElementById('error-screen').classList.add('visible');
-        return;
-      }
+  // Related posts
+  const others = POSTS.filter(p => p.slug !== blog.slug).slice(0, 3);
+  if (others.length) {
+    $('rel-grid').innerHTML = others.map(p => `
+      <div class="rel-card" onclick="navDetail('${p.slug}')">
+        <div class="rel-tag">${cap(p.category||p.keyword||'Article')}</div>
+        <h4>${p.title}</h4>
+        <div class="rel-time">${p.readTimeMinutes||'?'} min read</div>
+      </div>`).join('');
+    $('rel-strip').style.display = 'block';
+  } else { $('rel-strip').style.display = 'none'; }
 
-      try {
-        const res = await fetch(`/brands/${slug}.json`);
-        if (!res.ok) throw new Error('404');
-        const brand = await res.json();
+  $('list-view').classList.remove('on');
+  $('det-view').classList.add('on');
+  $('back-btn').classList.add('on');
+  window.scrollTo({ top: 0 });
+  setupProg();
+}
 
-        BRAND = brand;
-        POSTS = brand.posts;
+function goList() {
+  $('det-view').classList.remove('on');
+  $('list-view').classList.add('on');
+  $('back-btn').classList.remove('on');
+  $('rel-strip').style.display = 'none';
+  tearProg();
+  window.scrollTo({ top: 0 });
+  history.pushState({}, '', '/');
+}
 
-        // Apply accent
-        applyTheme(brand.accent);
+/* TOC observer */
+function observeTOC() {
+  const heads = $('art-body').querySelectorAll('h2, h3');
+  if (!heads.length) return;
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      document.querySelectorAll('#toc li').forEach(li => li.classList.remove('act'));
+      const a = document.querySelector(`#toc li a[href="#${e.target.id}"]`);
+      if (a) a.closest('li').classList.add('act');
+    });
+  }, { rootMargin: '-64px 0px -70% 0px' });
+  heads.forEach(h => { if (h.id) obs.observe(h); });
+}
 
-        // Header
-        document.getElementById('hdr-logo').textContent = brand.logo;
-        document.getElementById('hdr-name').textContent = brand.name;
+/* Progress bar */
+function setupProg() {
+  const bar = $('prog');
+  progHandler = () => {
+    const el = $('det-view'), top = el.getBoundingClientRect().top;
+    const h  = el.scrollHeight - window.innerHeight;
+    bar.style.width = Math.min(100, Math.max(0, (-top/h)*100)) + '%';
+  };
+  window.addEventListener('scroll', progHandler);
+}
+function tearProg() {
+  if (progHandler) window.removeEventListener('scroll', progHandler);
+  $('prog').style.width = '0%';
+}
 
-        // Listing hero
-        document.getElementById('eyebrow-dot').style.background = brand.accent;
-        document.getElementById('eyebrow-tagline').textContent   = brand.tagline;
-        document.getElementById('list-brand-name').textContent   = brand.name;
-        document.getElementById('footer-url').textContent        = 'vudio.ai/blogs/' + brand.slug;
+/* Search */
+$('srch-inp').addEventListener('input', e => { search = e.target.value.toLowerCase().trim(); renderList(); });
 
-        // SEO
-        document.title = brand.name + ' Blog — vudio.ai';
-        document.querySelector('meta[name="description"]').content =
-          brand.tagline + ' — SEO blog powered by vudio.ai';
+/* ═══════════════════════════════════════════════════
+   ERROR
+═══════════════════════════════════════════════════ */
+function showErr(msg) {
+  $('loading').classList.add('out');
+  $('err-msg').textContent = msg;
+  $('err').classList.add('show');
+}
 
-        // Check if specific post requested
-        const postId = parseInt(getParam('post'));
+/* ═══════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════ */
+async function boot() {
+  // 1. Detect brand name from domain
+  const brand = getBrandName();
+  if (!brand) {
+    showErr('Could not detect brand name from URL.\nFor testing, add ?brand=vudio to the URL.');
+    return;
+  }
+  BRAND_NAME = brand;
 
-        renderTags();
-        renderListing();
+  // 2. Load API base URL from config.json
+  try {
+    const cfg = await fetch('/config.json').then(r => r.json());
+    API_BASE = cfg.apiBase || '';
+  } catch(e) {
+    showErr('Missing config.json — add your API base URL.');
+    return;
+  }
 
-        document.getElementById('listing-view').classList.add('active');
-        document.getElementById('page').style.display = 'block';
-        document.getElementById('loading').classList.add('hidden');
+  // 3. Fetch brand kit first to get brand ID, then fetch blogs using that ID
+  try {
+    $('load-msg').textContent = 'Loading brand…';
+    const kitResp = await apiFetchKit(brand);
+    BRAND_ID = kitResp.data.brand._id;
+    KIT = { ...kitResp.data.kit, name: kitResp.data.brand?.name };
+    applyKit(KIT);
+    $('l-title').textContent = cap(brand) + ' Blog';
 
-        if (postId) openArticle(postId);
+    $('load-msg').textContent = 'Loading posts…';
+    POSTS = await apiFetchBlogs(BRAND_ID);
+  } catch(e) {
+    showErr(`API error for brand "${brand}".\n\n${e.message}\n\nMake sure:\n• API is running\n• CORS allows this domain\n• Brand exists in DB`);
+    return;
+  }
 
-      } catch (err) {
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('error-msg').textContent =
-          `No config found for "${slug}". Make sure brands/${slug}.json exists.`;
-        document.getElementById('error-screen').classList.add('visible');
-      }
-    }
+  // 4. Show page
+  $('page').style.display = 'block';
+  $('loading').classList.add('out');
 
-    boot();
-  </script>
+  // 5. Route
+  const route = getRoute();
+  if (route.type === 'detail') {
+    buildFilters(); renderList();
+    $('list-view').classList.add('on');
+    await navDetail(route.slug);
+  } else {
+    buildFilters(); renderList();
+    $('list-view').classList.add('on');
+  }
+
+  // 6. Browser back/forward
+  window.addEventListener('popstate', () => {
+    const r = getRoute();
+    if (r.type === 'list') goList();
+    else navDetail(r.slug);
+  });
+}
+
+boot();
+</script>
 </body>
 </html>
